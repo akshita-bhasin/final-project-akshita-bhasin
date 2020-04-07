@@ -17,7 +17,7 @@ endif
 
 all: hello_world
 	
-: test_bbb/hello_world.c
+hello_world: test_bbb/hello_world.c
 	@echo "$(CC) compilation"
 	@$(CC) $(CFLAGS) $(INCLUDES) test_bbb/hello_world.c -o hello_world
 	@echo "Successful compilation!"
