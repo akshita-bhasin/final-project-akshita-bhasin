@@ -14,7 +14,7 @@ int main(void)
 {
     int fd1, count;
     struct termios options;
-    char tx[20] = "U", rx[20];
+    char tx[20] = "C", rx[20];
 
     printf("Testing uart implementation with Tiva");
 
