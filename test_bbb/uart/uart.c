@@ -14,7 +14,7 @@ int main(void)
 {
     int fd1, count;
     struct termios options;
-    char tx[20] = "UART Tiva integration!", rx[20];
+    char tx[20] = "U", rx[20];
 
     printf("Testing uart implementation with Tiva");
 
@@ -44,7 +44,7 @@ int main(void)
     tcsetattr(fd1, TCSAFLUSH, &options);
 
     printf("Sending: '%s'\n", tx);
-    if ((count = write(fd1, &tx, 17)) < 0)
+    if ((count = write(fd1, &tx, 1)) < 0)
     {
         perror("write\n");
         return -1;
