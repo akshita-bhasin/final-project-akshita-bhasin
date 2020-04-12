@@ -2,6 +2,7 @@
 
 // http://man7.org/linux/man-pages/man3/termios.3.html
 // Exploring Beaglebone - Derek Molly for UART pins and example C code
+// Use child-parent, by using fork() to transmit and receive between Tiva and BBB. UART1 and UART5
 
 #include <stdio.h>
 #include <unistd.h>
@@ -13,9 +14,9 @@ int main(void)
 {
     int fd1, count;
     struct termios options;
-    char tx[20] = "Basic UART Test!", rx[20];
+    char tx[20] = "UART Tiva integration!", rx[20];
 
-    printf("Testing uart implementation");
+    printf("Testing uart implementation with Tiva");
 
     if ((fd1 = open("/dev/ttyO1", O_RDWR | O_NOCTTY | O_NDELAY)) < 0)
     {
@@ -51,20 +52,19 @@ int main(void)
 
     usleep(100000);
 
-    printf("Receive characters\n");
+    // printf("Receive characters\n");
 
-    if ((count = read(fd1, (void*)rx, 17)) < 0)
-    {
-        perror("read\n");
-        return -1;
-    }
+    // if ((count = read(fd1, (void*)rx, 17)) < 0)
+    // {
+    //     perror("read\n");
+    //     return -1;
+    // }
 
-    if(count)
-    {
-        printf("Received-> '%s'", rx);
-    }
+    // if(count)
+    // {
+    //     printf("Received-> '%s'", rx);
+    // }
 
     close(fd1);
-    printf("Enf of program.\n");
     return 0;
 }
