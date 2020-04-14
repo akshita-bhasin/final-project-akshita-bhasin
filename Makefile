@@ -15,8 +15,13 @@ ifeq ($(LDFLAGS),)
 	LDFLAGS := -pthread -lrt
 endif
 
-all: hello_world uart
-	
+all: hello_world uart tmp102
+
+tmp102: test_bbb/tmp102/tmp102.c
+	@echo "$(CC) compilation"
+	@$(CC) $(CFLAGS) $(INCLUDES) test_bbb/tmp102/tmp102.c -o tmp102
+	@echo "Successful compilation!"
+
 hello_world: test_bbb/hello_world/hello_world.c
 	@echo "$(CC) compilation"
 	@$(CC) $(CFLAGS) $(INCLUDES) test_bbb/hello_world/hello_world.c -o hello_world
@@ -28,4 +33,4 @@ uart: test_bbb/uart/uart.c
 	@echo "Successful compilation!"
 
 clean:
-	rm -rf hello_world uart
+	rm -rf hello_world uart tmp102
