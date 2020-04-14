@@ -14,7 +14,7 @@ int main(void)
 {
     int fd1, count;
     struct termios options;
-    char tx[20] = "UART Tiva Test!";//, rx[20];
+    char tx[20] = "UART Test!", rx[20];
 
     printf("Testing uart implementation with Tiva");
 
@@ -25,21 +25,9 @@ int main(void)
     }
 
     tcgetattr(fd1, &options);
-    if((cfsetispeed(&options, B115200)) == -1)
-    {
-        perror("Input baud rate\n");
-        return -1;
-    }
-    if((cfsetospeed(&options, B115200)) == -1)
-    {
-        perror("Output baud rate\n");
-        return -1;
-    } 
 
-    options.c_cflag |= (CLOCAL | CS8);
-    options.c_iflag &= ~(ISTRIP | IXON | INLCR | PARMRK | ICRNL | IGNBRK);
-    options.c_oflag &= ~(OPOST);
-    options.c_lflag &= ~(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
+    options.c_cflag |= (B115200 | CS8 | CREAD | CLOCAL);
+    options.c_iflag = IGNPAR | ICRNL;    //ignore partity errors, CR -> newline
 
     tcsetattr(fd1, TCSAFLUSH, &options);
 
@@ -50,20 +38,20 @@ int main(void)
         return -1;
     }
 
-    usleep(100000);
+    usleep(100000); ////give the Beaglebone a chance to respond
 
-    // printf("Receive characters\n");
+    printf("Receive characters\n");
 
-    // if ((count = read(fd1, (void*)rx, 17)) < 0)
-    // {
-    //     perror("read\n");
-    //     return -1;
-    // }
+    if ((count = read(fd1, (void*)rx, 17)) < 0)
+    {
+        perror("read\n");
+        return -1;
+    }
 
-    // if(count)
-    // {
-    //     printf("Received-> '%s'", rx);
-    // }
+    if(count)
+    {
+        printf("Received-> '%s'", rx);
+    }
 
     close(fd1);
     return 0;
