@@ -55,6 +55,8 @@ int main(void)
     // }
     usleep(100000);
 
+    fcntl(fd1, F_SETFL, 0);
+
     while(1)
     {
 
