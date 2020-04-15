@@ -14,7 +14,7 @@ int main(void)
 {
     int fd1, count;
     struct termios options;
-    char tx = 'U';//, rx[20];
+    char rx;// = 'U';//, rx[20];
 
     printf("Testing uart implementation with Tiva");
 
@@ -47,29 +47,30 @@ int main(void)
     tcflush(fd1, TCIFLUSH);
     tcsetattr(fd1, TCSANOW, &options);
 
-    while(1)
-    {
-        printf("Sending char: %c\n", tx);
-        if ((count = write(fd1, &tx, 1)) < 0)
-        {
-            perror("write\n");
-            return -1;
-        }
-        usleep(100000);
-    }
-
-    // printf("Receive characters\n");
-
-    // if ((count = read(fd1, (void*)rx, 17)) < 0)
+    // printf("Sending char: %c\n", tx);
+    // if ((count = write(fd1, &tx, 1)) < 0)
     // {
-    //     perror("read\n");
+    //     perror("write\n");
     //     return -1;
     // }
+    usleep(100000);
 
-    // if(count)
-    // {
-    //     printf("Received-> '%s'", rx);
-    // }
+    while(1)
+    {
+
+        printf("Receive characters\n");
+
+        if ((count = read(fd1, &rx, 1)) < 0)
+        {
+            perror("read\n");
+            return -1;
+        }
+
+        if(count)
+        {
+            printf("Received-> '%c'", rx);
+        }
+    }
 
     close(fd1);
     return 0;
