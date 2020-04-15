@@ -14,7 +14,7 @@ int main(void)
 {
     int fd1, count;
     struct termios options;
-    char rx;// = 'U';//, rx[20];
+    char rx[10];// = 'U';//, rx[20];
 
     printf("Testing uart implementation with Tiva");
 
@@ -50,7 +50,7 @@ int main(void)
     // printf("Sending char: %c\n", tx);
     // if ((count = write(fd1, &tx, 1)) < 0)
     // {
-    //     perror("write\n");
+    //     perror("write");
     //     return -1;
     // }
     usleep(100000);
@@ -60,15 +60,15 @@ int main(void)
 
         printf("Receive characters\n");
 
-        if ((count = read(fd1, &rx, 1)) < 0)
+        if ((count = read(fd1, (void *)rx, 1)) < 0)
         {
-            perror("read\n");
+            perror("read");
             return -1;
         }
 
         if(count)
         {
-            printf("Received-> '%c'", rx);
+            printf("Received-> '%s'", rx);
         }
     }
 
