@@ -42,15 +42,17 @@ int main(void)
     options.c_lflag &= ~(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
 
     tcsetattr(fd1, TCSAFLUSH, &options);
-
-    printf("Sending: '%c\n", tx);
-    if ((count = write(fd1, &tx, 1)) < 0)
+    
+    while(1)
     {
-        perror("write\n");
-        return -1;
+        printf("Sending: '%c\n", tx);
+        if ((count = write(fd1, &tx, 1)) < 0)
+        {
+            perror("write\n");
+            return -1;
+        }
+        usleep(100000);
     }
-
-    usleep(100000);
 
     // printf("Receive characters\n");
 
