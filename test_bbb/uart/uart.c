@@ -25,23 +25,27 @@ int main(void)
     }
 
     tcgetattr(fd1, &options);
-    if((cfsetispeed(&options, B9600)) == -1)
-    {
-        perror("Input baud rate\n");
-        return -1;
-    }
-    if((cfsetospeed(&options, B9600)) == -1)
-    {
-        perror("Output baud rate\n");
-        return -1;
-    } 
+    // if((cfsetispeed(&options, B9600)) == -1)
+    // {
+    //     perror("Input baud rate\n");
+    //     return -1;
+    // }
+    // if((cfsetospeed(&options, B9600)) == -1)
+    // {
+    //     perror("Output baud rate\n");
+    //     return -1;
+    // } 
 
-    options.c_cflag |= (CLOCAL | CS8);
-    options.c_iflag &= ~(ISTRIP | IXON | INLCR | PARMRK | ICRNL | IGNBRK);
-    options.c_oflag &= ~(OPOST);
-    options.c_lflag &= ~(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
+    // options.c_cflag |= (CLOCAL | CS8);
+    // options.c_iflag &= ~(ISTRIP | IXON | INLCR | PARMRK | ICRNL | IGNBRK);
+    // options.c_oflag &= ~(OPOST);
+    // options.c_lflag &= ~(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
 
-    tcsetattr(fd1, TCSAFLUSH, &options);
+    options.c_cflag = B9600 | CS8 | CREAD | CLOCAL;
+  	options.c_iflag = IGNPAR | ICRNL; 
+
+    tcflush(fd1, TCIFLUSH);
+    tcsetattr(fd1, TCSANOW, &options);
 
     while(1)
     {
