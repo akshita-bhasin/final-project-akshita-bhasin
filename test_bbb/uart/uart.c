@@ -25,12 +25,12 @@ int main(void)
     }
 
     tcgetattr(fd1, &options);
-    if((cfsetispeed(&options, B115200)) == -1)
+    if((cfsetispeed(&options, B9600)) == -1)
     {
         perror("Input baud rate\n");
         return -1;
     }
-    if((cfsetospeed(&options, B115200)) == -1)
+    if((cfsetospeed(&options, B9600)) == -1)
     {
         perror("Output baud rate\n");
         return -1;
@@ -42,10 +42,10 @@ int main(void)
     options.c_lflag &= ~(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
 
     tcsetattr(fd1, TCSAFLUSH, &options);
-    
+
     while(1)
     {
-        printf("Sending: '%c\n", tx);
+        printf("Sending char: %c\n", tx);
         if ((count = write(fd1, &tx, 1)) < 0)
         {
             perror("write\n");
