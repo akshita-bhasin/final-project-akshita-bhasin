@@ -65,10 +65,6 @@ int gpio_get_value(unsigned int gpio, unsigned int *value);
 int gpio_get_value_fd(int fd, unsigned int *value);
 
 
-static const char* kPollEdge_rising = "rising";
-static const char* kPollEdge_falling = "falling";
-static const char* kPollEdge_both = "both";
-
 /**
  * gpio_set_edge
  * @param edge should be "rising", "falling", or "both"

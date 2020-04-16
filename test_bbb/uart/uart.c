@@ -42,7 +42,7 @@ int main(void)
     // options.c_oflag &= ~(OPOST);
     // options.c_lflag &= ~(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
 
-    options.c_cflag = B9600 | CS8 | CREAD | CLOCAL;
+    options.c_cflag = B115200 | CS8 | CREAD | CLOCAL;
   	options.c_iflag = IGNPAR | ICRNL; 
 
     tcflush(fd1, TCIFLUSH);
