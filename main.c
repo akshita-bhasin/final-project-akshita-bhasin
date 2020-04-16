@@ -35,15 +35,12 @@ void tx_uart(void)
     int count;
     char tx[20] = "UART Tiva";
     printf("UART Transmit Started");
-    while(1)
-    {
         printf("Sending char: %s\n", tx);
         if ((count = write(uart_fd1, &tx, 10)) < 0)
         {
             perror("write");
         }
         usleep(100000);
-    }
 }
 
 void rx_uart(void)
