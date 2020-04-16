@@ -49,7 +49,7 @@ int main(void)
         return -1;
     }
 
-    usleep(100000);
+    // usleep(100000);
 
     printf("Receive characters\n");
 
