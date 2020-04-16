@@ -14,7 +14,7 @@ int main(void)
 {
     int fd1, count;
     struct termios options;
-    char tx = 'U';//, rx[20];
+    char tx[20] = "UART Tiva";//, rx[20];
 
     printf("Testing uart implementation with Tiva");
 
@@ -49,8 +49,8 @@ int main(void)
 
     while(1)
     {
-        printf("Sending char: %c\n", tx);
-        if ((count = write(fd1, &tx, 1)) < 0)
+        printf("Sending char: %s\n", tx);
+        if ((count = write(fd1, &tx, 10)) < 0)
         {
             perror("write");
             return -1;
