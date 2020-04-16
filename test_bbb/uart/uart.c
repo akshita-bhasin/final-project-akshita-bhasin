@@ -17,7 +17,7 @@ int main(void)
 //    char tx[20] = "UART Tiva";
     char rx;
 
-    printf("Testing uart implementation with Tiva");
+    printf("Testing uart implementation with Tiva\n");
 
     if ((fd1 = open("/dev/ttyO1", O_RDWR | O_NOCTTY | O_NDELAY)) < 0)
     {
@@ -64,7 +64,7 @@ int main(void)
     printf("Receive characters\n");
     while(1)
     {
-
+        printf("Rec\n");
         if ((count = read(fd1, &rx, 1)) < 0)
         {
             perror("read");
