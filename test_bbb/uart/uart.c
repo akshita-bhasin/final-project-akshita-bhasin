@@ -71,6 +71,11 @@ int main(void)
             return -1;
         }
 
+        if(count == 0)
+        {
+            printf("No data to read!");
+        }
+
         if(count)
         {
             printf("%c", rx);
