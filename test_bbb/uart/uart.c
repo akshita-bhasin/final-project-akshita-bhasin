@@ -2,25 +2,20 @@
 
 // http://man7.org/linux/man-pages/man3/termios.3.html
 // Exploring Beaglebone - Derek Molly for UART pins and example C code
-// Use child-parent, by using fork() to transmit and receive between Tiva and BBB. UART1 and UART5
 
 #include <stdio.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <termios.h>
 #include <stdint.h>
-#include <stddef.h>
-#include <sys/types.h>
-#include <string.h>
 
 int main(void)
 {
     int fd1, count;
     struct termios options;
-    char tx[20] = "UART Loopback";
-    char rx;
+    char tx[20] = "Basic UART Test!", rx[20];
 
-    printf("Testing uart implementation with Tiva\n");
+    printf("Testing uart implementation");
 
     if ((fd1 = open("/dev/ttyO1", O_RDWR | O_NOCTTY | O_NDELAY)) < 0)
     {
@@ -29,53 +24,47 @@ int main(void)
     }
 
     tcgetattr(fd1, &options);
+    if((cfsetispeed(&options, B4800)) == -1)
+    {
+        perror("Input baud rate\n");
+        return -1;
+    }
+    if((cfsetospeed(&options, B4800)) == -1)
+    {
+        perror("Output baud rate\n");
+        return -1;
+    } 
 
-    bzero(&options, sizeof(options));
-
-    options.c_cflag = B4800 | CS8 | CREAD | CLOCAL;
-  	options.c_iflag = IGNPAR | ICRNL;
+    options.c_cflag |= (CLOCAL | CS8);
+    options.c_iflag &= ~(ISTRIP | IXON | INLCR | PARMRK | ICRNL | IGNBRK);
     options.c_oflag = 0;
-    options.c_lflag = 0; 
+    options.c_lflag = 0;
 
-    tcflush(fd1, TCIFLUSH);
-    tcsetattr(fd1, TCSANOW, &options);
+    tcsetattr(fd1, TCSAFLUSH, &options);
 
-    // while(1)
-    // {
-        printf("Sending char: %s\n", tx);
-        if ((count = write(fd1, &tx, 14)) < 0)
-        {
-            perror("write");
-            return -1;
-        }
-        usleep(100000);
-    // }
+    printf("Sending: '%s'\n", tx);
+    if ((count = write(fd1, &tx, 17)) < 0)
+    {
+        perror("write\n");
+        return -1;
+    }
 
-    // fcntl(fd1, F_SETFL, 0);
+    usleep(100000);
 
     printf("Receive characters\n");
-    while(1)
+
+    if ((count = read(fd1, (void*)rx, 17)) < 0)
     {
-    //     printf("Rec\n");
-        if ((count = read(fd1, &rx, 1)) < 0)
-        {
-            perror("read");
-            return -1;
-        }
+        perror("read\n");
+        return -1;
+    }
 
-        if(count == 0)
-        {
-            printf("No data to read!");
-        }
-
-        if(count)
-        {
-            printf("%c", rx);
-        }
-
-        usleep(100000);
+    if(count)
+    {
+        printf("Received-> '%s'", rx);
     }
 
     close(fd1);
+    printf("Enf of program.\n");
     return 0;
 }
