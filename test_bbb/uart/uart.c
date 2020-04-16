@@ -68,7 +68,6 @@ int main(void)
         if ((count = read(fd1, &rx, 1)) < 0)
         {
             perror("read");
-            return -1;
         }
 
         if(count == 0)
