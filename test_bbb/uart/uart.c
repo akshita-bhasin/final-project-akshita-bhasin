@@ -13,7 +13,7 @@ int main(void)
 {
     int fd1, count;
     struct termios options;
-    char tx[20] = "Basic UART Test!", rx[20];
+    char tx[20] = "Hello TM4C123GXL", rx[20];
 
     printf("Testing uart implementation");
 
@@ -61,10 +61,9 @@ int main(void)
 
     if(count)
     {
-        printf("Received-> '%s'", rx);
+        printf("Received-> '%s", rx);
     }
 
     close(fd1);
-    printf("Enf of program.\n");
     return 0;
 }
