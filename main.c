@@ -17,23 +17,24 @@ void uart_init(void)
     }
 
     tcgetattr(uart_fd1, &options);
-    if((cfsetispeed(&options, B115200)) == -1)
-    {
-        perror("Input baud rate\n");
-        exit(1);
-    }
-    if((cfsetospeed(&options, B115200)) == -1)
-    {
-        perror("Output baud rate\n");
-        exit(1);
-    } 
+    // if((cfsetispeed(&options, B115200)) == -1)
+    // {
+    //     perror("Input baud rate\n");
+    //     exit(1);
+    // }
+    // if((cfsetospeed(&options, B115200)) == -1)
+    // {
+    //     perror("Output baud rate\n");
+    //     exit(1);
+    // } 
 
-    options.c_cflag |= (CLOCAL | CS8);
-    options.c_iflag &= ~(ISTRIP | IXON | INLCR | PARMRK | ICRNL | IGNBRK);
+    options.c_cflag = B115200 | CS8 | CREAD | CLOCAL;
+    options.c_iflag = IGNPAR | ICRNL;
     options.c_oflag = 0;
     options.c_lflag = 0;
 
-    tcsetattr(uart_fd1, TCSAFLUSH, &options);
+    tcflush(uart_fd1, TCIFLUSH);
+   	tcsetattr(uart_fd1, TCSANOW, &options); 
 }
 
 void uart_deinit(void)
@@ -56,12 +57,12 @@ void tx_uart(void)
 void rx_uart(void)
 {
     int count;
-    char rx[100];
+    char rx[20];
     fcntl(uart_fd1, F_SETFL, 0);
 
     printf("Receive characters\n");
 
-    if ((count = read(uart_fd1, (void*)rx, 100)) < 0)
+    if ((count = read(uart_fd1, (void*)rx, 20)) < 0)
     {
         perror("read\n");
         exit(1);
@@ -89,6 +90,7 @@ int main(void)
         }
         else if (func_count[tasks] == 0)
         {
+            printf("In else of fork");
             (*func_ptr[tasks])();
             exit(EXIT_SUCCESS);
         }
