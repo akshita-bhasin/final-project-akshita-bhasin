@@ -61,7 +61,7 @@ int main(void)
 
     if(count)
     {
-        printf("Received-> '%s", rx);
+        printf("Received-> %s, %d chars", rx, count);
     }
 
     close(fd1);

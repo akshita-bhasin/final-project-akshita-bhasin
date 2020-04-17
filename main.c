@@ -8,21 +8,32 @@ void uart_init(void)
 {
     struct termios options;
 
-    printf("Testing uart implementation with Tiva");
+    printf("Testing uart implementation");
 
     if ((uart_fd1 = open("/dev/ttyO1", O_RDWR | O_NOCTTY | O_NDELAY)) < 0)
     {
         perror("open\n");
+        exit(1);
     }
 
     tcgetattr(uart_fd1, &options);
+    if((cfsetispeed(&options, B115200)) == -1)
+    {
+        perror("Input baud rate\n");
+        exit(1);
+    }
+    if((cfsetospeed(&options, B115200)) == -1)
+    {
+        perror("Output baud rate\n");
+        exit(1);
+    } 
 
-    options.c_cflag = B9600 | CS8 | CREAD | CLOCAL;
-  	options.c_iflag = IGNPAR | ICRNL; 
+    options.c_cflag |= (CLOCAL | CS8);
+    options.c_iflag &= ~(ISTRIP | IXON | INLCR | PARMRK | ICRNL | IGNBRK);
+    options.c_oflag = 0;
+    options.c_lflag = 0;
 
-    tcflush(uart_fd1, TCIFLUSH);
-    tcsetattr(uart_fd1, TCSANOW, &options);
-
+    tcsetattr(uart_fd1, TCSAFLUSH, &options);
 }
 
 void uart_deinit(void)
@@ -33,36 +44,32 @@ void uart_deinit(void)
 void tx_uart(void)
 {
     int count;
-    char tx[20] = "UART Tiva";
-    printf("UART Transmit Started");
-        printf("Sending char: %s\n", tx);
-        if ((count = write(uart_fd1, &tx, 10)) < 0)
-        {
-            perror("write");
-        }
-        usleep(100000);
+    char tx[20] = "Hello TM4C123GXL";
+    printf("Sending: '%s'\n", tx);
+    if ((count = write(uart_fd1, &tx, 17)) < 0)
+    {
+        perror("write\n");
+        exit(1);
+    }
 }
 
 void rx_uart(void)
 {
     int count;
     char rx[20];
-    syslog(LOG_DEBUG, "UART Receive Started");
     fcntl(uart_fd1, F_SETFL, 0);
 
-    while(1)
+    printf("Receive characters\n");
+
+    if ((count = read(uart_fd1, (void*)rx, 17)) < 0)
     {
-        printf("Receive characters\n");
+        perror("read\n");
+        exit(1);
+    }
 
-        if ((count = read(uart_fd1, (void *)rx, 1)) < 0)
-        {
-            perror("read");
-        }
-
-        if(count)
-        {
-            printf("Received-> '%s'", rx);
-        }
+    if(count)
+    {
+        printf("Received-> %s, %d chars", rx, count);
     }
 }
 
