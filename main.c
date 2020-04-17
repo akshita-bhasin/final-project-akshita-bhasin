@@ -56,12 +56,12 @@ void tx_uart(void)
 void rx_uart(void)
 {
     int count;
-    char rx[20];
+    char rx[100];
     fcntl(uart_fd1, F_SETFL, 0);
 
     printf("Receive characters\n");
 
-    if ((count = read(uart_fd1, (void*)rx, 17)) < 0)
+    if ((count = read(uart_fd1, (void*)rx, 100)) < 0)
     {
         perror("read\n");
         exit(1);

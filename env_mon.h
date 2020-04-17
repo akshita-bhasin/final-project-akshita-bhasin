@@ -16,6 +16,5 @@
 #include "inc/gpio.h"
 #include "inc/hello_world.h"
 #include "inc/tmp102.h"
-#include "inc/uart.h"
 int i2c_fd1;
 int uart_fd1;
