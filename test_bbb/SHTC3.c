@@ -59,6 +59,48 @@ int shtc3_write_single_byte(int file, unsigned char device_addr, uint8_t command
 
 #define I2C_DEVICE "/dev/i2c-2"
 
+// #define SMBUS 0
+
+// #ifdef SMBUS
+// static inline __s32 i2c_smbus_access(int file, char read_write, __u8 command, int size, union i2c_smbus_data *data)
+// {
+//     struct i2c_smbus_ioctl_data args;
+
+//     __s32 ret;
+//     args.read_write = read_write;
+//     args.command = command;
+//     args.size = size;
+//     args.data = data;
+
+//     ret = ioctl(file, I2C_SMBUS, &args);
+
+//     if(ret == -1)
+//         ret = -errno;
+    
+//     return ret;
+// }
+
+// static inline __s32 i2c_smbus_read_byte(int file, __u8 command)
+// {
+//     union i2c_smbus_data data;
+//     if(i2c_smbus_access(file, I2C_SMBUS_BYTE, &data))
+//         return -1;
+    
+//     else
+//         return 0x0FF & data.byte;
+// }
+
+// static inline __s32 i2c_write_byte(int file, __u8 command, __u8 value)
+// {
+//     union i2c_smbus_dadadadddta data;
+//     data.byte = value;
+//     return i2c_smbus_access(file, I2C_SMBUS_WRITE,command,I2C_SMBUS_BYTE_DATA,&data);
+// }
+
+// #endif
+
+
+
 int main(void)
 {
     int fd;
@@ -117,6 +159,37 @@ int main(void)
     }
     printf("If no errors, device wake up worked.Will try reading device ID\n");
 
+    //read ID
+    char buff[3] = {0};
+    MSB = (uint8_t)(SHTC3_READ_ID >> 8);
+    LSB = (uint8_t) (SHTC3_READ_ID & 0x00FF);
+
+    if(write(fd,&MSB,1)!= 1){
+        perror("error writing MSB of readid");
+        return -1;
+    }
+
+    if(write(fd,&LSB,1)!= 1){
+        perror("error writing LSB of readid");
+        return -1;
+    }
+
+    if(read(fd,buff,3) != 3)
+    {
+        perror("error reading the ID of the device");
+    }
+    else
+    {
+        uint8_t READ_ID_MSB = buff[0];
+        uint8_t READ_ID_LSB = buff[1];
+        uint8_t CRC = buff[2];
+
+        int ID = ((READ_ID_MSB << 8 | READ_ID_LSB) >> 4);
+        printf("ID is %d", ID);
+        printf("\nCRC is %d",CRC);
+    }
+    
+ 
 }
 
 
