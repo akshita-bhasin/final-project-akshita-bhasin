@@ -159,6 +159,8 @@ int main(void)
     }
     printf("If no errors, device wake up worked.Will try reading device ID\n");
 
+    usleep(10);
+
     //read ID
     char buff[3] = {0};
     MSB = (uint8_t)(SHTC3_READ_ID >> 8);
@@ -174,6 +176,8 @@ int main(void)
         return -1;
     }
 
+    usleep(10);
+    
     if(read(fd,buff,3) != 3)
     {
         perror("error reading the ID of the device");
