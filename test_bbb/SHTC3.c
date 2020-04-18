@@ -57,7 +57,7 @@ int shtc3_write_single_byte(int file, unsigned char device_addr, uint8_t command
 #endif /* SHTC3_H*/
 
 
-#define I2C_DEVICE "/dev/i2c-1"
+#define I2C_DEVICE "/dev/i2c-2"
 
 int main(void)
 {
