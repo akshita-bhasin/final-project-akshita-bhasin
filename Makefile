@@ -35,7 +35,7 @@ endif
 # clean:
 # 	rm -rf hello_world uart tmp102
 
-all: environmental_monitoring shtc3
+all: environmental_monitoring shtc3 tmp102
 
 environmental_monitoring: main.c
 	@echo "$(CC) compilation"
@@ -47,5 +47,10 @@ shtc3: test_bbb/SHTC3.c
 	@$(CC) $(CFLAGS) $(INCLUDES) test_bbb/SHTC3.c -o shtc3
 	@echo "Successful compilation!"
 
+tmp102: test_bbb/tmp102/tmp102.c
+	@echo "$(CC) compilation"
+	@$(CC) $(CFLAGS) $(INCLUDES) test_bbb/tmp102/tmp102.c -o tmp102
+	@echo "Successful compilation!"
+
 clean:
-	rm -rf environmental_monitoring shtc3
+	rm -rf environmental_monitoring shtc3 tmp102
