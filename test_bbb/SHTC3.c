@@ -80,12 +80,12 @@ int main(void)
     }
 
     // wakeup command, measurement command, read out command , sleep command
-    if((ret = shtc3_read_single_byte(fd,SHTC3_ADDR,SHTC3_WRITE,&ack)) != 0)
-    {
-        perror("Error reading ack, wakeup");
-        return -1;
-    }
-    printf("Wake up write : %c\n",ack);
+    // if((ret = shtc3_read_single_byte(fd,SHTC3_ADDR,SHTC3_WRITE,&ack)) != 0)
+    // {
+    //     perror("Error reading ack, wakeup");
+    //     return -1;
+    // }
+    //printf("Wake up write : %c\n",ack);
     MSB = (uint8_t)(SHTC3_WAKE >> 8);
     LSB = (uint8_t)(SHTC3_WAKE & 0x00FF);
 
@@ -104,6 +104,7 @@ int main(void)
     printf("Wake up LSB : %c\n",ack);
 
 }
+
 
  /*
 // https://stackoverflow.com/questions/52975817/setup-i2c-reading-and-writing-in-c-language
