@@ -159,7 +159,7 @@ int main(void)
     }
     printf("If no errors, device wake up worked.Will try reading device ID\n");
 
-    usleep(10);
+    usleep(15);
 
     //read ID
     char buff[3] = {0};
@@ -176,7 +176,7 @@ int main(void)
         return -1;
     }
 
-    usleep(10);
+    usleep(15);
     
     if(read(fd,buff,3) != 3)
     {
