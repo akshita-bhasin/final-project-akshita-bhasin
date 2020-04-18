@@ -62,8 +62,8 @@ int shtc3_write_single_byte(int file, unsigned char device_addr, uint8_t command
 int main(void)
 {
     int fd;
-    int ret;
-    unsigned char ack;
+    //int ret;
+    //unsigned char ack;
 
     uint8_t MSB,LSB;
 
@@ -86,22 +86,36 @@ int main(void)
     //     return -1;
     // }
     //printf("Wake up write : %c\n",ack);
-    MSB = (uint8_t)(SHTC3_WAKE >> 8);
+    // MSB = (uint8_t)(SHTC3_WAKE >> 8);
+    // LSB = (uint8_t)(SHTC3_WAKE & 0x00FF);
+
+    // if((ret = shtc3_read_single_byte(fd,SHTC3_ADDR,MSB,&ack)) != 0)
+    // {
+    //     perror("Error reading ack, wakeup");
+    //     return -1;
+    // }
+
+    // printf("Wake up MSB : %c\n",ack);
+    // if((ret = shtc3_read_single_byte(fd,SHTC3_ADDR,LSB,&ack)) != 0)
+    // {
+    //     perror("Error reading ack, wakeup");
+    //     return -1;
+    // }
+    // printf("Wake up LSB : %c\n",ack);
+    MSB = (uint8_t)(SHTC3_WAKE >>8);
     LSB = (uint8_t)(SHTC3_WAKE & 0x00FF);
 
-    if((ret = shtc3_read_single_byte(fd,SHTC3_ADDR,MSB,&ack)) != 0)
-    {
-        perror("Error reading ack, wakeup");
+    if(write(fd,&MSB,1)!= 1){
+        perror("error writing MSB");
         return -1;
     }
 
-    printf("Wake up MSB : %c\n",ack);
-    if((ret = shtc3_read_single_byte(fd,SHTC3_ADDR,LSB,&ack)) != 0)
+    if(write(fd,&LSB,1)!= 1)
     {
-        perror("Error reading ack, wakeup");
+        perror("error writing LSB");
         return -1;
     }
-    printf("Wake up LSB : %c\n",ack);
+    printf("If no errors, device wake up worked.Will try reading device ID\n");
 
 }
 
