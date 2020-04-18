@@ -5,7 +5,6 @@ Author: Madhukar Arora
 
 @ Leverage Code:
 https://stackoverflow.com/questions/52975817/setup-i2c-reading-and-writing-in-c-language
-
 */
 
 
