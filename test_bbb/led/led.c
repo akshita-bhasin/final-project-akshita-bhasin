@@ -61,6 +61,7 @@
 #include <poll.h>
 
 #define LED     (53)
+#define BUZ     (49)
 
  /****************************************************************
  * Constants
@@ -256,12 +257,23 @@ int main(void)
         perror("gpio_export");
         exit(1);
     }
+    if((ret = gpio_export(BUZ)) != 0)
+    {
+        perror("gpio_export");
+        exit(1);
+    }
 
     if((ret = gpio_set_dir(LED, GPIO_DIR_OUTPUT)) != 0)
     {
         perror("gpio_set_dir");
         exit(1);
     }
+    if((ret = gpio_set_dir(BUZ, GPIO_DIR_OUTPUT)) != 0)
+    {
+        perror("gpio_set_dir");
+        exit(1);
+    }
+
    
     for( ; ; )
     {
@@ -270,19 +282,35 @@ int main(void)
             perror("gpio_set_ON_value");
             exit(1);
         }
+        if((ret = gpio_set_value(BUZ, 1)) != 0)
+        {
+            perror("gpio_set_ON_value");
+            exit(1);
+        }
 
-        sleep(1);
+        usleep(1000000);
         
         if((ret = gpio_set_value(LED, 0)) != 0)
         {
             perror("gpio_set_OFF_value");
             exit(1);
         }
+        if((ret = gpio_set_value(BUZ, 0)) != 0)
+        {
+            perror("gpio_set_OFF_value");
+            exit(1);
+        }
 
-        sleep(1);
+        usleep(10000000);
     }
 
     if((ret = gpio_unexport(LED)) != 0)
+    {
+        perror("gpio_unexport");
+        exit(1);
+    }
+
+    if((ret = gpio_unexport(BUZ)) != 0)
     {
         perror("gpio_unexport");
         exit(1);
