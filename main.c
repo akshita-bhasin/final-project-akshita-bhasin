@@ -2,13 +2,11 @@
 
 #include "env_mon.h"
 
-#define TASKS 2
+#define TASKS 3
 
 void uart_init(void)
 {
     struct termios options;
-
-    printf("Testing uart implementation");
 
     if ((uart_fd1 = open("/dev/ttyO1", O_RDWR | O_NOCTTY | O_NDELAY)) < 0)
     {
@@ -139,7 +137,6 @@ int main(void)
         }
         else if (func_count[tasks] == 0)
         {
-            printf("In else of fork");
             (*func_ptr[tasks])();
             exit(EXIT_SUCCESS);
         }
