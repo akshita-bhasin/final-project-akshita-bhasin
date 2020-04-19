@@ -288,7 +288,7 @@ int main(void)
             exit(1);
         }
 
-        usleep(10000);
+        usleep(1000000);
         
         if((ret = gpio_set_value(LED, 0)) != 0)
         {
@@ -301,7 +301,7 @@ int main(void)
             exit(1);
         }
 
-        usleep(10000);
+        usleep(100000);
     }
 
     if((ret = gpio_unexport(LED)) != 0)
