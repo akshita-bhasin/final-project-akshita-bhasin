@@ -15,6 +15,30 @@
 #ifndef _GPIO_H_
 #define _GPIO_H_
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <errno.h>
+#include <stdint.h>
+#include <string.h>
+#include <fcntl.h>
+#include <poll.h>
+
+#define LED     (53)
+#define BUZ     (68)
+
+ /****************************************************************
+ * Constants
+ ****************************************************************/
+
+#define SYSFS_GPIO_DIR "/sys/class/gpio"
+#define MAX_BUF 64
+
+
+#define GPIO_DIR_INPUT  (0)
+#define GPIO_DIR_OUTPUT (1)
+
+
 /**
  * @ return 0 on success
  *
@@ -36,9 +60,6 @@ int gpio_export(unsigned int gpio);
  * undo the export action.
  */
 int gpio_unexport(unsigned int gpio);
-
-#define GPIO_DIR_INPUT  (0)
-#define GPIO_DIR_OUTPUT (1)
 
 /**
  * gpio_set_dir

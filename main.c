@@ -2,7 +2,7 @@
 
 #include "env_mon.h"
 
-#define TASKS 3
+#define TASKS 4
 
 void uart_init(void)
 {
@@ -64,7 +64,7 @@ void rx_uart(void)
 
 void signal_handler(int signum)
 {
-  assert(0 == close(fd));
+  assert(0 == close(tmp102_fd1));
   exit(signum);
 }
 
@@ -119,16 +119,95 @@ void tmp102_task(void)
     }
 }
 
+void actuator_init(void)
+{
+    int ret = 0;
+
+    if((ret = gpio_export(LED)) != 0)
+    {
+        perror("gpio_export");
+        exit(1);
+    }
+    if((ret = gpio_export(BUZ)) != 0)
+    {
+        perror("gpio_export");
+        exit(1);
+    }
+
+    if((ret = gpio_set_dir(LED, GPIO_DIR_OUTPUT)) != 0)
+    {
+        perror("gpio_set_dir");
+        exit(1);
+    }
+    if((ret = gpio_set_dir(BUZ, GPIO_DIR_OUTPUT)) != 0)
+    {
+        perror("gpio_set_dir");
+        exit(1);
+    }
+}
+
+void actuator_deinit(void)
+{
+    int ret = 0;
+    if((ret = gpio_unexport(LED)) != 0)
+    {
+        perror("gpio_unexport");
+        exit(1);
+    }
+
+    if((ret = gpio_unexport(BUZ)) != 0)
+    {
+        perror("gpio_unexport");
+        exit(1);
+    }
+}
+
+void actuator_task(void)
+{
+    int i, ret = 0;
+    
+    for(i=0;i<10;i++)
+    {
+        if((ret = gpio_set_value(LED, 1)) != 0)
+        {
+            perror("gpio_set_ON_value");
+            exit(1);
+        }
+        if((ret = gpio_set_value(BUZ, 1)) != 0)
+        {
+            perror("gpio_set_ON_value");
+            exit(1);
+        }
+
+        usleep(1000000);
+        
+        if((ret = gpio_set_value(LED, 0)) != 0)
+        {
+            perror("gpio_set_OFF_value");
+            exit(1);
+        }
+        if((ret = gpio_set_value(BUZ, 0)) != 0)
+        {
+            perror("gpio_set_OFF_value");
+            exit(1);
+        }
+
+        usleep(100000);
+    }
+}
+
 int main(void)
 {
     pid_t func_count[TASKS];
     int tasks, num_tasks = TASKS;
     void(*func_ptr[])(void) = { tx_uart,
                                 rx_uart,
-                                tmp102_task };
+                                tmp102_task,
+                                actuator_task };
 
     uart_init();
     tmp102_init();
+    actuator_init();
     for(tasks=0; tasks<num_tasks; tasks++) {
         if((func_count[tasks] = fork()) < 0)
         {

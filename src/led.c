@@ -47,26 +47,10 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
-#include "../inc/gpio.h"
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <errno.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <poll.h>
-
- /****************************************************************
- * Constants
- ****************************************************************/
-
-#define SYSFS_GPIO_DIR "/sys/class/gpio"
-#define MAX_BUF 64
-
-
+#include "../inc/led.h"
 /****************************************************************
  * gpio_export
  ****************************************************************/
@@ -113,10 +97,10 @@ int gpio_unexport(unsigned int gpio)
  ****************************************************************/
 int gpio_set_dir(unsigned int gpio, unsigned int out_flag)
 {
-    int fd, len;
+    int fd;
     char buf[MAX_BUF];
 
-    len = snprintf(buf, sizeof(buf), SYSFS_GPIO_DIR  "/gpio%d/direction", gpio);
+    snprintf(buf, sizeof(buf), SYSFS_GPIO_DIR  "/gpio%d/direction", gpio);
 
     fd = open(buf, O_WRONLY);
     if (fd < 0) {
@@ -138,10 +122,10 @@ int gpio_set_dir(unsigned int gpio, unsigned int out_flag)
  ****************************************************************/
 int gpio_set_value(unsigned int gpio, unsigned int value)
 {
-    int fd, len;
+    int fd;
     char buf[MAX_BUF];
 
-    len = snprintf(buf, sizeof(buf), SYSFS_GPIO_DIR "/gpio%d/value", gpio);
+    snprintf(buf, sizeof(buf), SYSFS_GPIO_DIR "/gpio%d/value", gpio);
 
     fd = open(buf, O_WRONLY);
     if (fd < 0) {
@@ -163,10 +147,10 @@ int gpio_set_value(unsigned int gpio, unsigned int value)
  ****************************************************************/
 int gpio_get_value(unsigned int gpio, unsigned int *value)
 {
-    int fd, len;
+    int fd;
     char buf[MAX_BUF];
 
-    len = snprintf(buf, sizeof(buf), SYSFS_GPIO_DIR "/gpio%d/value", gpio);
+    snprintf(buf, sizeof(buf), SYSFS_GPIO_DIR "/gpio%d/value", gpio);
 
     fd = open(buf, O_RDONLY);
     if (fd < 0) {
@@ -201,10 +185,10 @@ int gpio_get_value_fd(int fd, unsigned int *value)
 
 int gpio_set_edge(unsigned int gpio, const char *edge)
 {
-    int fd, len;
+    int fd;
     char buf[MAX_BUF];
 
-    len = snprintf(buf, sizeof(buf), SYSFS_GPIO_DIR "/gpio%d/edge", gpio);
+    snprintf(buf, sizeof(buf), SYSFS_GPIO_DIR "/gpio%d/edge", gpio);
 
     fd = open(buf, O_WRONLY);
     if (fd < 0) {
@@ -223,10 +207,10 @@ int gpio_set_edge(unsigned int gpio, const char *edge)
 
 int gpio_fd_open(unsigned int gpio)
 {
-    int fd, len;
+    int fd;
     char buf[MAX_BUF];
 
-    len = snprintf(buf, sizeof(buf), SYSFS_GPIO_DIR "/gpio%d/value", gpio);
+    snprintf(buf, sizeof(buf), SYSFS_GPIO_DIR "/gpio%d/value", gpio);
 
     fd = open(buf, O_RDONLY | O_NONBLOCK );
     if (fd < 0) {

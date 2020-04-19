@@ -13,8 +13,8 @@
 #include <sys/ioctl.h>
 #include <linux/i2c.h>
 #include <linux/i2c-dev.h>
-#include "inc/gpio.h"
 #include "inc/hello_world.h"
+#include "inc/led.h"
 #include "inc/tmp102.h"
 
 #define SLAVE_ADDR 0x48
