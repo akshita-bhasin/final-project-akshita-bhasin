@@ -250,7 +250,7 @@ int gpio_fd_close(int fd)
 
 int main(void)
 {
-    int ret = 0;
+    int i, ret = 0;
 
     if((ret = gpio_export(LED)) != 0)
     {
@@ -275,7 +275,7 @@ int main(void)
     }
 
    
-    for( ; ; )
+    for(i=0;i<10;i++)
     {
         if((ret = gpio_set_value(LED, 1)) != 0)
         {
