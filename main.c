@@ -1,4 +1,4 @@
-//Referred to mohit Rane repository to structure main.c
+//Referred to Mohit Rane repository to structure main.c
 
 #include "env_mon.h"
 
@@ -17,16 +17,6 @@ void uart_init(void)
     }
 
     tcgetattr(uart_fd1, &options);
-    // if((cfsetispeed(&options, B115200)) == -1)
-    // {
-    //     perror("Input baud rate\n");
-    //     exit(1);
-    // }
-    // if((cfsetospeed(&options, B115200)) == -1)
-    // {
-    //     perror("Output baud rate\n");
-    //     exit(1);
-    // } 
 
     options.c_cflag = B115200 | CS8 | CREAD | CLOCAL;
     options.c_iflag = IGNPAR | ICRNL;
@@ -74,14 +64,73 @@ void rx_uart(void)
     }
 }
 
+void signal_handler(int signum)
+{
+  assert(0 == close(fd));
+  exit(signum);
+}
+
+void tmp102_init(void)
+{
+  char *bus = "/dev/i2c-1"; /* Pins P9_17 and P9_18 */
+  int addr = SLAVE_ADDR;          /* The I2C address of TMP102 */
+  
+  if ((tmp102_fd1 = open(bus, O_RDWR)) < 0) {
+    /* ERROR HANDLING: you can check errno to see what went wrong */
+    perror("Failed to open the i2c bus");
+    exit(1);
+  }
+
+ if (ioctl(tmp102_fd1, I2C_SLAVE, addr) < 0) {
+   perror("Failed to acquire bus access and/or talk to slave.\n");
+   /* ERROR HANDLING; you can check errno to see what went wrong */
+   exit(1);
+ }
+
+ /* Register the signal handler */
+ signal(SIGINT, signal_handler);
+
+}
+
+void tmp102_task(void)
+{
+    printf("In TMP102 task\n");
+    char buf[2] = {0};
+    int temp;
+    unsigned char MSB, LSB;
+
+    float f,c;
+    // Using I2C Read
+    if (read(tmp102_fd1,buf,2) != 2) {
+        /* ERROR HANDLING: i2c transaction failed */
+        perror("Failed to read from the i2c bus.\n");
+
+    } else {
+
+        MSB = buf[0];
+        LSB = buf[1];
+
+        /* Convert 12bit int using two's compliment */
+        /* Credit: http://bildr.org/2011/01/tmp102-arduino/ */
+        temp = ((MSB << 8) | LSB) >> 4;
+
+        c = temp*0.0625;
+        f = (1.8 * c) + 32;
+
+        printf("Temp Fahrenheit: %f Celsius: %f\n", f, c);
+    }
+}
+
 int main(void)
 {
     pid_t func_count[TASKS];
     int tasks, num_tasks = TASKS;
     void(*func_ptr[])(void) = { tx_uart,
-                                rx_uart };
+                                rx_uart,
+                                tmp102_task };
 
     uart_init();
+    tmp102_init();
     for(tasks=0; tasks<num_tasks; tasks++) {
         if((func_count[tasks] = fork()) < 0)
         {

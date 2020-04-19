@@ -16,5 +16,9 @@
 #include "inc/gpio.h"
 #include "inc/hello_world.h"
 #include "inc/tmp102.h"
+
+#define SLAVE_ADDR 0x48
+
+int tmp102_fd1;
 int i2c_fd1;
 int uart_fd1;
