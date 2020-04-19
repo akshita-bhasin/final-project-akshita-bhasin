@@ -61,7 +61,7 @@
 #include <poll.h>
 
 #define LED     (53)
-#define BUZ     (49)
+#define BUZ     (68)
 
  /****************************************************************
  * Constants
