@@ -29,9 +29,9 @@ Leveraged Code : https://beej.us/guide/bgnet/html/
 #define BUFFER_SIZE 20
 #define NR_OPEN 1024
 
-const char *writefile = "/var/tmp/aesdsocketdata";
-int new_fd, sockfd;
 
+int new_fd, sockfd;
+volatile int signal_set = 0;
 
 /**********************************************************************************
  Function Name : signal_handler
@@ -45,16 +45,14 @@ static void signal_handler(int signo)
 {
     if((signo == SIGINT) || (signo == SIGTERM))
     {
-        close(new_fd);
-        remove(writefile);
+        signal_set = 1;
         syslog(LOG_INFO,"Caught signal,exiting");
+        shutdown(sockfd,SHUT_RDWR);
     }
     else 
     {
-        fprintf(stderr,"Unexpected signal!\n");
         exit(EXIT_FAILURE);
     }
-    exit(EXIT_SUCCESS);
 }
 
 
@@ -72,7 +70,8 @@ int main(int argc, char* argv[])
 
     int addr_status;
     int bindfd, listenfd, setsockfd;
-    int fd, daemon_mode = 0;
+    
+    int daemon_mode = 0;
     int option = 1;
     
     
@@ -154,8 +153,8 @@ int main(int argc, char* argv[])
         
     }
 
-    pid_t pid = getpid();
-    printf("PID: %d", pid);
+    //pid_t pid = getpid();
+    
 
     while(1)
     {
@@ -169,53 +168,13 @@ int main(int argc, char* argv[])
         //ip_address
         syslog(LOG_INFO,"Accepted Connection from %s", inet_ntoa(their_addr.sin_addr));
 
-        int recv_check = 0;
-        int read_bytes = 0; 
-        char *recv_msg = (char*)malloc(BUFFER_SIZE);
-        // Discussed with Atharva Nandanwar to figure out a solutiongit
-        do{
-            recv_check = recv(new_fd,recv_msg + read_bytes, BUFFER_SIZE, 0);
-            if(recv_check == -1)
-            {
-                syslog(LOG_DEBUG,"Recieve message failure");
-                return -1;
-            }
-            read_bytes += recv_check;
-            if(recv_check == BUFFER_SIZE)
-            {
-                recv_msg = (char*)realloc(recv_msg,BUFFER_SIZE*10);
-            }
-        }while(*(recv_msg + read_bytes -1) != '\n');
-        
-        fd = open(writefile,O_CREAT| O_RDWR | O_APPEND,0755);
-        if (fd == -1) // checks for error
-        {
-            syslog(LOG_ERR, "File could not be created\n");
-            return 1;
-        }
-        else
-        {
-            write(fd,recv_msg,read_bytes);
-        }
-        free(recv_msg);
-        off_t filesize;
-        filesize = lseek(fd, 0L, SEEK_END);
-        lseek(fd, 0L, SEEK_SET);
+        send(new_fd, "HELLO", 6, 0);   // server to client    
     
-
-        char* send_msg;
-        send_msg = (char*)malloc(filesize);
-        
-        read(fd,send_msg,filesize);
-        
-
-        send(new_fd, send_msg, filesize, 0);   // server to client    
-        free(send_msg);
         syslog(LOG_INFO,"Closed Connection from %s", inet_ntoa(their_addr.sin_addr));
-        memset(&recv_msg,0,strlen(recv_msg));
-        close(fd);    
-   }       
-          
+   }
+   close(new_fd);
+   syslog(LOG_INFO,"Caught Signal Exiting!");       
+
 }
 
     

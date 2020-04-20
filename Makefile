@@ -35,7 +35,7 @@ endif
 # clean:
 # 	rm -rf hello_world uart tmp102
 
-all: environmental_monitoring shtc3 server
+all: environmental_monitoring shtc3 server client
 
 environmental_monitoring: main.o led.o
 	@echo "$(CC) compilation"
@@ -58,5 +58,12 @@ server: test_bbb/server-socket/aesdsocket.c
 	@$(CC) $(CFLAGS) $(INCLUDES) test_bbb/server-socket/aesdsocket.c -o server
 	@echo "Successful compilation!"
 
+client: test_bbb/client-socket/client.c
+	@echo "$(CC) compilation"
+	@$(CC) $(CFLAGS) $(INCLUDES) test_bbb/client-socket/client.c -o client
+	@echo "Successful compilation!"
+
+
+
 clean:
-	rm -rf *.o environmental_monitoring shtc3 server
+	rm -rf *.o environmental_monitoring shtc3 server client
