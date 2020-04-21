@@ -38,7 +38,7 @@
 #  define PDEBUG(fmt, args...) /* not debugging: nothing */
 #endif
 
-#define SENSOR_SHMEM_DEF         ("/sens_shmem")
+#define SENSOR_SHMEM_DEF         ("/shm_1")
 #define SENSOR_SHMEM_PROD_COUNT  (1)
 
 int tmp102_fd1;
