@@ -4,6 +4,7 @@
 *             http://www.cse.psu.edu/~deh25/cmpsc473/notes/OSC/Processes/shm-posix-producer-orig.c
 *             http://www.cse.psu.edu/~deh25/cmpsc473/notes/OSC/Processes/shm-posix-consumer.c
 *             http://man7.org/training/download/posix_shm_slides.pdf
+*             http://logan.tw/posts/2018/01/07/posix-shared-memory/
 *             
 */
 
@@ -163,7 +164,7 @@ void tmp102_task(void)
     unsigned char MSB, LSB;
 
     float f, c;
-    // Using I2C Read
+    // Using I2C Readgit@github.com:cu-ecen-5013/final-project-Gitanjali-Suresh.git
     if (read(tmp102_fd1,buf,2) != 2) {
         /* ERROR HANDLING: i2c transaction failed */
         perror("Failed to read from the i2c bus.\n");
@@ -189,25 +190,25 @@ void tmp102_task(void)
     sensor_shmem *share_mem_temp_ptr = &share_mem_temp;
     sensor_shmem *share_mem_ptr = NULL;
 
-    if ((tmp_shmem_fd = shm_open(SENSOR_SHMEM_DEF,O_RDWR, 0)) < 0)
+    if((tmp_shmem_fd = shm_open(SENSOR_SHMEM_DEF,O_RDWR, 0)) < 0)
     {
         perror("SHM open");
         exit(1);
     }
 
-    if ((share_mem_ptr = (sensor_shmem *)mmap(NULL, sizeof(sensor_shmem), PROT_READ|PROT_WRITE, MAP_SHARED, tmp_shmem_fd, 0)) < 0)
+    if((share_mem_ptr = (sensor_shmem *)mmap(NULL, sizeof(sensor_shmem), PROT_READ|PROT_WRITE, MAP_SHARED, tmp_shmem_fd, 0)) < 0)
     {
         perror("mmap");
         exit(1);
     }
 
-    if (close(tmp_shmem_fd) < 0)
+    if(close(tmp_shmem_fd) < 0)
     {
         perror("close");
         exit(1);
     }
 
-    if ((temperature_sem = sem_open(tmp_sem_name, 0, 0600, 0)) < 0)
+    if((temperature_sem = sem_open(tmp_sem_name, 0, 0600, 0)) < 0)
     {
         perror("sem_open");
         exit(1);
@@ -219,7 +220,7 @@ void tmp102_task(void)
 
     sleep(2);
 
-    if (munmap(share_mem_ptr, sizeof(sensor_shmem)) < 0)
+    if(munmap(share_mem_ptr, sizeof(sensor_shmem)) < 0)
     {
         perror("munmap");
         exit(1);
@@ -324,7 +325,7 @@ int main(void)
     if((shmem_1_fd = shm_open(SENSOR_SHMEM_DEF, O_CREAT | O_RDWR, 0600)) < 0)
     {
         perror("shm_open");
-        exit(1);
+        return -1;
     }
 
     ftruncate(shmem_1_fd, sizeof(sensor_shmem));
@@ -332,13 +333,13 @@ int main(void)
     if(close(shmem_1_fd) < 0)
     {
         perror("close");
-        exit(1);
+        return -1;
     }
 
     if((main_sem = sem_open(tmp_sem_name, O_CREAT, 0600, 0)) < 0)
     {
         perror("sem_open");
-        exit(1);
+        return -1;
     }
 
     sem_close(main_sem);
@@ -366,13 +367,13 @@ int main(void)
     if(sem_unlink(tmp_sem_name) < 0)
     {
         perror("sem_unlink");
-        exit(1);
+        return -1;
     }
     
     if(shm_unlink(SENSOR_SHMEM_DEF) < 0)
     {
         perror("shm_unlink");
-        exit(1);
+        return -1;
     }
 
     return 0;
