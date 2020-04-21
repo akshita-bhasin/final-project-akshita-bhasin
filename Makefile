@@ -15,36 +15,16 @@ ifeq ($(LDFLAGS),)
 	LDFLAGS := -pthread -lrt
 endif
 
-# all: hello_world uart tmp102
-
-# tmp102: test_bbb/tmp102/tmp102.c
-# 	@echo "$(CC) compilation"
-# 	@$(CC) $(CFLAGS) $(INCLUDES) test_bbb/tmp102/tmp102.c -o tmp102
-# 	@echo "Successful compilation!"
-
-# hello_world: test_bbb/hello_world/hello_world.c
-# 	@echo "$(CC) compilation"
-# 	@$(CC) $(CFLAGS) $(INCLUDES) test_bbb/hello_world/hello_world.c -o hello_world
-# 	@echo "Successful compilation!"
-
-# uart: test_bbb/uart/uart.c
-# 	@echo "$(CC) compilation"
-# 	@$(CC) $(CFLAGS) $(INCLUDES) test_bbb/uart/uart.c -o uart
-# 	@echo "Successful compilation!"
-
-# clean:
-# 	rm -rf hello_world uart tmp102
-
 all: environmental_monitoring shtc3 server client
 
 environmental_monitoring: main.o led.o
 	@echo "$(CC) compilation"
-	@$(CC) $(CFLAGS) $(INCLUDES) main.o led.o -o environmental_monitoring
+	@$(CC) $(CFLAGS) $(INCLUDES) main.o led.o -o environmental_monitoring $(LDFLAGS)
 	@echo "Successful compilation!"
 
 main.o: main.c inc/led.h
 	@echo "$(CC) compilation"
-	@$(CC) $(CFLAGS) $(INCLUDES) -c main.c
+	@$(CC) $(CFLAGS) $(INCLUDES) -c main.c $(LDFLAGS)
 	@echo "Successful compilation!"
 
 led.o: src/led.c inc/led.h
