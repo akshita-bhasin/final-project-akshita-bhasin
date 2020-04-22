@@ -189,6 +189,7 @@ void tmp102_task(void)
 /*Consumer for shared memory 1*/
 void tx_uart(void)
 {
+    printf("In UART Tx task\n");
     int shm_fd;
     sem_t *temperature_sem;
     sensor_shmem shmem_tx;
