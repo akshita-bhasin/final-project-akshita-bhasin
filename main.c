@@ -219,8 +219,8 @@ void tx_uart(void)
         if (ret == 0)
         {
             memcpy((void*)shmem_tx_ptr, (void*)(&share_mem_ptr[0]), sizeof(sensor_shmem));
-            PDEBUG("Sensor = %d\n", shmem_tx.sensor);
-            PDEBUG("Sensor value = %d\n", shmem_tx.value);
+            printf("Sensor = %d\n", shmem_tx.sensor);
+            printf("Sensor value = %d\n", shmem_tx.value);
             // int count;
             // char tx[20] = "Hello TM4C123GXL";
             // printf("Sending: '%s'\n", tx);
