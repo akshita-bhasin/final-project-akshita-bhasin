@@ -95,96 +95,52 @@ int task3(void)
 
 int main(void)
 {
+	sem_t *main_sem;
+	pid_t fork_id = 0;
+	int status = 0;
 
-    pid_t func_count[3];
-    int tasks, num_tasks = 3;
-    sem_t *main_sem;
-    int shmem_1_fd;
-    int(*func_ptr[])(void) = { task1,
-                                task2,
-                                task3 };
+	main_sem = sem_open(task_1_sem, O_CREAT, 0600, 0);
+	sem_close(main_sem);	
+	main_sem = sem_open(task_2_sem, O_CREAT, 0600, 0);
+	sem_close(main_sem);	
+	main_sem = sem_open(task_3_sem, O_CREAT, 0600, 0);
+	sem_close(main_sem);
+	int shm_fd1 = shm_open(SENSOR_SHMEM_DEF,O_CREAT | O_RDWR, 0666);
+	if(shm_fd1 < 0)
+	{ 
+		printf("open\n"); 
+	}
 
+	ftruncate(shm_fd1, 4096);
+	
+	close(shm_fd1);
 
-    if((shmem_1_fd = shm_open(SENSOR_SHMEM_DEF, O_CREAT | O_RDWR, 0600)) < 0)
-    {
-        perror("shm_open");
-        return -1;
-    }
+	task1();
+	fork_id = fork();
+	wait(&status);	
 
-    ftruncate(shmem_1_fd, sizeof(sensor_shmem));
+	if(fork_id < 0)
+	{
+		exit(1);
+	}
 
-    if(close(shmem_1_fd) < 0)
-    {
-        perror("close");
-        return -1;
-    }
+	if(fork_id > 0)
+	{
+		exit(0);
+	}
+	
+	setsid();
 
-    printf("Succesfully created shm");
+	chdir("/");
 
-    if((main_sem = sem_open(task_1_sem, O_CREAT, 0600, 0)) < 0)
-    {
-        perror("sem_open");
-        return -1;
-    }
+	task2();
+	task3();
+	
+	sem_unlink(task_1_sem);
+	sem_unlink(task_2_sem);
+	sem_unlink(task_3_sem);
 
-    sem_close(main_sem);
-
-    if((main_sem = sem_open(task_2_sem, O_CREAT, 0600, 0)) < 0)
-    {
-        perror("sem_open");
-        return -1;
-    }
-
-    sem_close(main_sem);
-
-    if((main_sem = sem_open(task_3_sem, O_CREAT, 0600, 0)) < 0)
-    {
-        perror("sem_open");
-        return -1;
-    }
-
-    sem_close(main_sem);
-
-    for(tasks=0; tasks<num_tasks; tasks++) {
-        if((func_count[tasks] = fork()) < 0)
-        {
-            perror("fork");
-            exit(EXIT_FAILURE);
-        }
-        else if (func_count[tasks] == 0)
-        {
-            (*func_ptr[tasks])();
-            exit(EXIT_SUCCESS);
-        }
-    }
-
-    while(tasks > 0)
-    {
-        tasks--;
-    }
-
-    if(sem_unlink(task_1_sem) < 0)
-    {
-        perror("sem_unlink");
-        return -1;
-    }
-    
-    if(sem_unlink(task_2_sem) < 0)
-    {
-        perror("sem_unlink");
-        return -1;
-    }
-
-    if(sem_unlink(task_3_sem) < 0)
-    {
-        perror("sem_unlink");
-        return -1;
-    }
-    if(shm_unlink(SENSOR_SHMEM_DEF) < 0)
-    {
-        perror("shm_unlink");
-        return -1;
-    }
+	shm_unlink(SENSOR_SHMEM_DEF);
 
     return 0;
 }

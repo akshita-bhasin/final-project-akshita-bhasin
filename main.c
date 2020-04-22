@@ -336,8 +336,6 @@ int main(void)
         return -1;
     }
 
-    printf("Succesfully created shm");
-
     if((main_sem = sem_open(tmp_sem_name, O_CREAT, 0600, 0)) < 0)
     {
         perror("sem_open");
