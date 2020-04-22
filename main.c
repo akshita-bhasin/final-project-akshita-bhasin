@@ -195,7 +195,7 @@ void tx_uart(void)
     sensor_shmem shmem_tx;
     sensor_shmem *shmem_tx_ptr = &shmem_tx;
     sensor_shmem * share_mem_ptr= NULL;
-    int ret, count;
+    int ret=1, count;
 
     if((shm_fd = shm_open(SENSOR_SHMEM_DEF, O_RDWR, 0666)) < 0)
     {
@@ -211,7 +211,7 @@ void tx_uart(void)
 
     temperature_sem = sem_open(tmp_sem_name, 0, 0600, 0);
 
-    while(1)
+    while(ret!=0)
     {
         sem_post(temperature_sem);
         ret = sem_wait(temperature_sem);
