@@ -15,7 +15,7 @@ ifeq ($(LDFLAGS),)
 	LDFLAGS := -pthread -lrt
 endif
 
-all: environmental_monitoring shtc3 server client shared_mem
+all: environmental_monitoring shtc3 server client shared_mem ambient
 
 environmental_monitoring: main.o led.o
 	@echo "$(CC) compilation"
@@ -48,5 +48,9 @@ shared_mem: test_bbb/shared-memory/shared_memory.c
 	@$(CC) $(CFLAGS) $(INCLUDES) test_bbb/shared-memory/shared_memory.c -o shared_mem $(LDFLAGS)
 	@echo "Successful compilation!"
 
+ambient: test_bbb/veml6030/ambient.c
+	@echo "$(CC) compilation"
+	@$(CC) $(CFLAGS) $(INCLUDES) test_bbb/veml6030/ambient.c -o ambient
+	@echo "Successful compilation!"
 clean:
-	rm -rf *.o environmental_monitoring shtc3 server client shared_mem
+	rm -rf *.o environmental_monitoring shtc3 server client shared_mem ambient
