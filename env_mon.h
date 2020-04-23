@@ -39,8 +39,10 @@
 #  define PDEBUG(fmt, args...) /* not debugging: nothing */
 #endif
 
-#define SENSOR_SHMEM_DEF         ("/shm_1")
-#define SENSOR_SHMEM_PROD_COUNT  (1)
+#define SENSOR_SHMEM_DEF           ("/shm_1")
+#define ACTUATOR_SHMEM_DEF         ("/shm_2")
+#define SENSOR_SHMEM_PROD_COUNT    (1)
+#define ACTUAT_SHMEM_PROD_COUNT    (1)
 
 int tmp102_fd1;
 int i2c_fd1;
@@ -51,4 +53,11 @@ typedef struct {
      uint8_t value;
 } sensor_shmem;
 
+typedef struct {
+     uint8_t actuator; 
+     uint8_t value;
+} actuator_shmem;
+
+
 char* tmp_sem_name = "tmp102_sem";
+char* act_sem_name = "actuat_sem";
