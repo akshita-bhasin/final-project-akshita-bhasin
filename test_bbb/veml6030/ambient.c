@@ -92,13 +92,22 @@ int main(void)
         return -1;
     }
     
-    if((status = read_word(fd,VEML_ADDR,sensor_values)) != 0)
-    {
-        perror("error reading sensor values");
-        return -1;
-    }
+    // if((status = read_word(fd,VEML_ADDR,sensor_values)) != 0)
+    // {
+    //     perror("error reading sensor values");
+    //     return -1;
+    // }
 
-    printf("\n\rRecieved these values from the sensor \n LSB : %d \n MSB : %d\n",sensor_values[0],sensor_values[1]);
+    if(read(fd,sensor_values,2) != 2)
+    {
+        perror("\n\rFailed to read from the device");
+    }
+    else
+    {
+      printf("\n\rRecieved these values from the sensor \n LSB : %d \n MSB : %d\n",sensor_values[0],sensor_values[1]);  
+    }
+    
+    //printf("\n\rRecieved these values from the sensor \n LSB : %d \n MSB : %d\n",sensor_values[0],sensor_values[1]);
 
     return 0;    
 }
@@ -154,7 +163,7 @@ int write_single_byte(int file, unsigned char device_addr, int command)
     packets.msgs = &message;
     packets.nmsgs = 1;
     if(ioctl(file,I2C_RDWR,&packets) < 0){
-        perror("Error writing");
+        perror("\n\rError writing single byte");
         return -1;
     }
 
@@ -197,8 +206,8 @@ int read_word(int file, unsigned char device_addr,int *val)
     packets.nmsgs = 2;
 
     if(ioctl(file,I2C_RDWR,&packets) < 0){
-        perror("Error writing");
-        return -1;
+        perror("\n\rError reading a word");
+        return -1; 
     }
     val[0] = inbuf[0];
     val[1] = inbuf[1];
@@ -215,7 +224,7 @@ int write_word(int file, unsigned char device_addr, int* command)
     outbuf[0] = command[0];
     outbuf[1] = command[1];
     outbuf[2] = command[2];
-    
+
     struct i2c_rdwr_ioctl_data packets;
     struct i2c_msg message;
     /*write command to the slave*/
@@ -228,7 +237,7 @@ int write_word(int file, unsigned char device_addr, int* command)
     packets.msgs = &message;
     packets.nmsgs = 1;
     if(ioctl(file,I2C_RDWR,&packets) < 0){
-        perror("Error writing");
+        perror("Error writing a word");
         return -1;
     }
 
