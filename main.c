@@ -282,8 +282,8 @@ void rx_uart(void)
 
     while(ret!=0)
     {
-        // // sem_post(actuator_sem);
-        // ret = sem_wait(actuator_sem);
+        sem_post(actuator_sem);
+        ret = sem_wait(actuator_sem);
         
         if (ret == 0)
         {
