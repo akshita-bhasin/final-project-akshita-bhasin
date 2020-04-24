@@ -167,7 +167,7 @@ void tmp102_task(void)
 
     memcpy((void*)(&share_mem_ptr[0]), (void*)share_mem_temp_ptr, sizeof(sensor_shmem));
 
-    // sem_post(temperature_sem);
+    sem_post(temperature_sem);
 
     // sleep(2);
 
@@ -282,7 +282,7 @@ void rx_uart(void)
 
     while(ret!=0)
     {
-        sem_post(actuator_sem);
+        // sem_post(actuator_sem);
         ret = sem_wait(actuator_sem);
         
         if (ret == 0)
@@ -386,6 +386,7 @@ void actuator_task(void)
         // }
 
         // usleep(100000);
+        sem_post(actuator_sem);
     }
 
     if(munmap(share_mem_ptr, sizeof(actuator_shmem)) < 0)
@@ -506,7 +507,22 @@ int main(void)
 
 	rx_uart();
 
+    fork_id = fork();
 	wait(&status);	
+
+	if(fork_id < 0)
+	{
+		exit(1);
+	}
+
+	if(fork_id > 0)
+	{
+		exit(0);
+	}
+	
+	setsid();
+
+	chdir("/");
 
 	actuator_task();
 	
