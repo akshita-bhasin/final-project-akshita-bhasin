@@ -210,7 +210,6 @@ void tx_uart(void)
 
     while(ret!=0)
     {
-        sem_post(temperature_sem);
         ret = sem_wait(temperature_sem);
         
         if (ret == 0)
@@ -278,8 +277,8 @@ void rx_uart(void)
     actuator_sem = sem_open(act_sem_name, 0, 0600, 0);
 
     sem_post(actuator_sem);
-    while(1)
-    {
+    // while(1)
+    // {
         ret = sem_wait(actuator_sem);
         
         if (ret == 0)
@@ -298,7 +297,7 @@ void rx_uart(void)
             printf("Actuator value = %d\n", shmem_rx.value);
             memcpy((void*)shmem_rx_ptr, (void*)(&share_mem_ptr[0]), sizeof(actuator_shmem));
             sem_post(actuator_sem);
-        }
+        // }
 
         /* Wait for humidty and add sleep */
     }
@@ -314,6 +313,8 @@ void rx_uart(void)
         perror("munmap");
         exit(1);
     }
+
+    printf("Testing task working");
 
     sem_close(actuator_sem);
 }
@@ -493,18 +494,12 @@ int main(void)
 
 	rx_uart();
 
+    printf("Outside rx_uart");
     fork_id = fork();
 
-	if(fork_id < 0)
-	{
-		exit(1);
-	}
+    printf("fork_id after rx_uart: %d", fork_id);
 
-	if(fork_id > 0)
-	{
-		exit(0);
-	}
-
+    printf("Before calling actuator task");
 	actuator_task();
 	
 	sem_unlink(tmp_sem_name);
