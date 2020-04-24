@@ -1,4 +1,3 @@
-//Referred to Mohit Rane repository to structure main.c
 /*
 * References : https://www.geeksforgeeks.org/posix-shared-memory-api/
 *             http://www.cse.psu.edu/~deh25/cmpsc473/notes/OSC/Processes/shm-posix-producer-orig.c
@@ -169,8 +168,6 @@ void tmp102_task(void)
 
     sem_post(temperature_sem);
 
-    // sleep(2);
-
     if(munmap(share_mem_ptr, sizeof(sensor_shmem)) < 0)
     {
         perror("munmap");
@@ -280,9 +277,9 @@ void rx_uart(void)
 
     actuator_sem = sem_open(act_sem_name, 0, 0600, 0);
 
-    while(ret!=0)
+    sem_post(actuator_sem);
+    while(1)
     {
-        sem_post(actuator_sem);
         ret = sem_wait(actuator_sem);
         
         if (ret == 0)
@@ -298,10 +295,10 @@ void rx_uart(void)
             }
 
             printf("Actuator = %d\n", shmem_rx.actuator);
-            printf("Sensor value = %d\n", shmem_rx.value);
+            printf("Actuator value = %d\n", shmem_rx.value);
             memcpy((void*)shmem_rx_ptr, (void*)(&share_mem_ptr[0]), sizeof(actuator_shmem));
+            sem_post(actuator_sem);
         }
-        sem_post(actuator_sem);
 
         /* Wait for humidty and add sleep */
     }
@@ -352,7 +349,6 @@ void actuator_task(void)
 
     while(1)
     {
-        sem_post(actuator_sem);
         sem_wait(actuator_sem);
         memcpy((void*)(&share_mem_ptr[0]), (void*)share_mem_act_ptr, sizeof(actuator_shmem));
         printf("Acutator = %d\n", share_mem_act.actuator);
@@ -440,7 +436,6 @@ int main(void)
 {
     sem_t *main_sem;
 	pid_t fork_id = 0;
-	int status = 0;
 
 	main_sem = sem_open(tmp_sem_name, O_CREAT, 0600, 0);
 	sem_close(main_sem);
@@ -471,7 +466,6 @@ int main(void)
 
 	tmp102_task();
 	fork_id = fork();
-	wait(&status);	
 
 	if(fork_id < 0)
 	{
@@ -482,15 +476,10 @@ int main(void)
 	{
 		exit(0);
 	}
-	
-	setsid();
-
-	chdir("/");
 
 	tx_uart();
 
     fork_id = fork();
-	wait(&status);	
 
 	if(fork_id < 0)
 	{
@@ -501,15 +490,10 @@ int main(void)
 	{
 		exit(0);
 	}
-	
-	setsid();
-
-	chdir("/");
 
 	rx_uart();
 
     fork_id = fork();
-	wait(&status);	
 
 	if(fork_id < 0)
 	{
@@ -520,10 +504,6 @@ int main(void)
 	{
 		exit(0);
 	}
-	
-	setsid();
-
-	chdir("/");
 
 	actuator_task();
 	
