@@ -47,7 +47,7 @@ int write_word(int file, unsigned char device_addr, int* command);
  int  power_saving_on = 0x0001; //PSM mode 1, enabled
 
 //register address, LSB, MSB
- int  power_on_command[3] = {0x00, 0x00, 0x08}; 
+ int  power_on_command[3] = {0x00, 0x00, 0x10}; 
  int psaveoff_command[3] = {0x03, 0x00, 0x00};
  int psaveon_command[3]  = {0x03, 0x01, 0x00};
  int read_command        = 0x04;
@@ -97,15 +97,18 @@ int main(void)
     //     perror("error reading sensor values");
     //     return -1;
     // }
-
-    if(read(fd,sensor_values,2) != 2)
+    while(1)
     {
+        if(read(fd,sensor_values,2) != 2)
+        {
         perror("\n\rFailed to read from the device");
-    }
-    else
-    {
+        }
+        else
+        {
       printf("\n\rRecieved these values from the sensor \n LSB : %d \n MSB : %d\n",sensor_values[0],sensor_values[1]);  
+        }
     }
+    
     
     //printf("\n\rRecieved these values from the sensor \n LSB : %d \n MSB : %d\n",sensor_values[0],sensor_values[1]);
 
