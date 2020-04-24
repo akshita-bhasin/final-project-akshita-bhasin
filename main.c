@@ -508,6 +508,7 @@ int main(void)
 		exit(0);
 	}
 
+    printf("Before calling actuator task");
 	actuator_task();
 	
 	sem_unlink(tmp_sem_name);
