@@ -5,9 +5,9 @@ Author: Madhukar Arora
 
 @ Leverage Code:
 https://stackoverflow.com/questions/52975817/setup-i2c-reading-and-writing-in-c-language
+
+https://github.com/shenki/linux-i2c-example/blob/master/i2c_example.c
 */
-
-
 
 #include <errno.h>
 #include <string.h>
@@ -52,13 +52,52 @@ int write_word(int file, unsigned char device_addr, int* command);
  int psaveon_command[3]  = {0x03, 0x01, 0x00};
  int read_command        = 0x04;
 
+
+
+ __s32 i2c_smbus_access(int file, char read_write, __u8 command, int size, union i2c_smbus_data *data)
+ {
+     struct i2c_smbus_ioctl_data args;
+     
+     args.read_write = read_write;
+     args.command    = command;
+     args.size       = size;
+     args.data       = data;
+
+     return ioctl(file,I2C_SMBUS,&args);
+ }
+
+static inline __s32 i2c_smbus_read_byte_data(int file, __u8 command)
+{
+    union i2c_smbus_data data;
+    if(i2c_smbus_access(file,I2C_SMBUS_READ,command,I2C_SMBUS_BYTE_DATA,&data))
+        return -1;
+    else
+    {
+        return 0x0FF & data.byte;
+    }
+    
+}
+
+
+static inline __s32 i2c_smbus_read_word_data(int file, __u8 command)
+{
+    union i2c_smbus_data data;
+    if(i2c_smbus_access(file,I2C_SMBUS_READ,command,I2C_SMBUS_WORD_DATA,&data))
+        return -1;
+    else
+    {
+        return 0x0FFFF & data.byte;
+    }
+}
+
 int main(void)
 {
     int fd;
     int status;
 
-    int sensor_values[2] = {0}; //index 0 LSB index 1 MSB
+    //int sensor_values[2] = {0}; //index 0 LSB index 1 MSB
 
+    uint16_t sensor_val;
     if((fd = open(I2C_DEVICE,O_RDWR)) < 0){
         perror("Opening I2C file error");
         return -1;
@@ -99,14 +138,16 @@ int main(void)
     // }
     while(1)
     {
-        if(read(fd,sensor_values,2) != 2)
-        {
-        perror("\n\rFailed to read from the device");
-        }
-        else
-        {
-      printf("\n\rRecieved these values from the sensor \n LSB : %d \n MSB : %d\n",sensor_values[0],sensor_values[1]);  
-        }
+    //     if(read(fd,sensor_values,2) != 2)
+    //     {
+    //     perror("\n\rFailed to read from the device");
+    //     }
+    //     else
+    //     {
+    //   printf("\n\rRecieved these values from the sensor \n LSB : %d \n MSB : %d\n",sensor_values[0],sensor_values[1]);  
+    //     }
+            sensor_val = i2c_smbus_read_word_data(fd,read_command);
+            printf("\n\r received sensor value : %d",sensor_val);
     }
     
     
