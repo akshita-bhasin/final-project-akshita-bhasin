@@ -314,6 +314,8 @@ void rx_uart(void)
         exit(1);
     }
 
+    printf("Testing task working");
+
     sem_close(actuator_sem);
 }
 
@@ -492,8 +494,10 @@ int main(void)
 
 	rx_uart();
 
+    printf("Outside rx_uart");
     fork_id = fork();
 
+    printf("fork_id after rx_uart: %d", fork_id);
 	if(fork_id < 0)
 	{
 		exit(1);
