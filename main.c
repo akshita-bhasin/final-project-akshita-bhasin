@@ -352,6 +352,7 @@ void actuator_task(void)
 
     while(1)
     {
+        sem_post(actuator_sem);
         sem_wait(actuator_sem);
         memcpy((void*)(&share_mem_ptr[0]), (void*)share_mem_act_ptr, sizeof(actuator_shmem));
         printf("Acutator = %d\n", share_mem_act.actuator);
