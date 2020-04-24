@@ -280,7 +280,7 @@ void rx_uart(void)
 
     actuator_sem = sem_open(act_sem_name, 0, 0600, 0);
 
-    while(count!=0)
+    while(ret!=0)
     {
         sem_post(actuator_sem);
         ret = sem_wait(actuator_sem);
@@ -300,7 +300,6 @@ void rx_uart(void)
             printf("Actuator = %d\n", shmem_rx.actuator);
             printf("Sensor value = %d\n", shmem_rx.value);
             memcpy((void*)shmem_rx_ptr, (void*)(&share_mem_ptr[0]), sizeof(actuator_shmem));
-            ret = 1;
         }
         sem_post(actuator_sem);
 
