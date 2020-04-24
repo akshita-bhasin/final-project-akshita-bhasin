@@ -1,7 +1,7 @@
 /*
 File:   ambient.c
 Author: Madhukar Arora
-@Brief: 
+@Brief: contains function to read lux values from VEML6030 
 
 @ Leverage Code:
 https://stackoverflow.com/questions/52975817/setup-i2c-reading-and-writing-in-c-language
@@ -37,21 +37,6 @@ int read_single_byte(int file, unsigned char device_addr, int* val);
 int write_single_byte(int file, unsigned char device_addr, int command);
 int read_word(int file, unsigned char device_addr,int *val);
 int write_word(int file, unsigned char device_addr, int* command);
-
-
-
-
-
- int power_on_config = 0x800; //MSB = 0x8, LSB 0x00
- int power_saving_off = 0x0000; //PSM mode 1, disabled
- int  power_saving_on = 0x0001; //PSM mode 1, enabled
-
-//register address, LSB, MSB
- int  power_on_command[3] = {0x00, 0x00, 0x10}; 
- int psaveoff_command[3] = {0x03, 0x00, 0x00};
- int psaveon_command[3]  = {0x03, 0x01, 0x00};
- int read_command        = 0x04;
-
 
 
  __s32 i2c_smbus_access(int file, char read_write, __u8 command, int size, union i2c_smbus_data *data)
@@ -90,104 +75,19 @@ static inline __s32 i2c_smbus_read_word_data(int file, __u8 command)
     }
 }
 
-int main(void)
-{
-    int fd;
-    int status;
+ int power_on_config = 0x800; //MSB = 0x8, LSB 0x00
+ int power_saving_off = 0x0000; //PSM mode 1, disabled
+ int  power_saving_on = 0x0001; //PSM mode 1, enabled
 
-    //int sensor_values[2] = {0}; //index 0 LSB index 1 MSB
-
-    uint16_t sensor_val;
-    if((fd = open(I2C_DEVICE,O_RDWR)) < 0){
-        perror("Opening I2C file error");
-        return -1;
-    }
-
-    if(ioctl(fd,I2C_SLAVE,VEML_ADDR) < 0){
-        perror("I2C ioctl error");
-        return -1;
-    }
-
-    //power on the sensor
-    if((status = write_word(fd,VEML_ADDR,power_on_command)) != 0) 
-    {
-        perror("Could not power on the ambient light sensor");
-        return -1;
-    }
-
-
-    //power save command on
-    if((status = write_word(fd,VEML_ADDR,psaveon_command)) != 0)
-    {
-        perror("Could not set up power saving mode");
-        return -1;
-    }
-
-    printf("\n\rDevice setup to read values from the sensor");
-
-    if((status = write_single_byte(fd,VEML_ADDR,read_command)) != 0)
-    {
-        perror("Phase 1 write for read failed");
-        return -1;
-    }
-    
-    // if((status = read_word(fd,VEML_ADDR,sensor_values)) != 0)
-    // {
-    //     perror("error reading sensor values");
-    //     return -1;
-    // }
-    while(1)
-    {
-    //     if(read(fd,sensor_values,2) != 2)
-    //     {
-    //     perror("\n\rFailed to read from the device");
-    //     }
-    //     else
-    //     {
-    //   printf("\n\rRecieved these values from the sensor \n LSB : %d \n MSB : %d\n",sensor_values[0],sensor_values[1]);  
-    //     }
-            sensor_val = i2c_smbus_read_word_data(fd,read_command);
-            printf("\n\r received sensor value : %d",sensor_val);
-    }
-    
-    
-    //printf("\n\rRecieved these values from the sensor \n LSB : %d \n MSB : %d\n",sensor_values[0],sensor_values[1]);
-
-    return 0;    
-}
-
+ //register address, LSB, MSB
+ int  power_on_command[3] = {0x00, 0x00, 0x08}; 
+ int psaveoff_command[3]  = {0x03, 0x00, 0x00};
+ int psaveon_command[3]   = {0x03, 0x01, 0x00};
+ int read_command         = 0x04;
 
  /*
 // https://stackoverflow.com/questions/52975817/setup-i2c-reading-and-writing-in-c-language
 // */
-int read_single_byte(int file, unsigned char device_addr, int* val)
-{
-    uint8_t inbuf;
-    struct i2c_rdwr_ioctl_data packets;
-    struct i2c_msg message;
-
-    // /*write command to the slave*/
-    // messages[0].addr  = device_addr;
-    // messages[0].flags = 0;
-    // messages[0].len   = sizeof(command);
-    // messages[0].buf = &command;
-
-    /*read from the slave*/
-    message.addr = device_addr;
-    message.flags = I2C_M_RD; //read data from slave to master
-    message.len = sizeof(inbuf);
-    message.buf = &inbuf;
-
-    packets.msgs = &message;
-    packets.nmsgs = 1;
-    
-    if(ioctl(file,I2C_RDWR,&packets) < 0){
-        perror("Error reading a single byte");
-        return -1;
-    }
-    *val = inbuf;
-    return 0;    
-}
 
 int write_single_byte(int file, unsigned char device_addr, int command)
 {
@@ -200,10 +100,6 @@ int write_single_byte(int file, unsigned char device_addr, int command)
     message.flags = 0;
     message.len   = sizeof(outbuf);
     message.buf = &outbuf;
-
-    
-    
-
     packets.msgs = &message;
     packets.nmsgs = 1;
     if(ioctl(file,I2C_RDWR,&packets) < 0){
@@ -215,50 +111,6 @@ int write_single_byte(int file, unsigned char device_addr, int command)
 }
 
 
-int read_word(int file, unsigned char device_addr,int *val)
-{
-    uint8_t inbuf[2];
-    struct i2c_rdwr_ioctl_data packets;
-    struct i2c_msg messages[2];
-
-    // /*write command to the slave*/
-    // messages[0].addr  = device_addr;
-    // messages[0].flags = 0;
-    // messages[0].len   = sizeof(command);
-    // messages[0].buf = &command;
-
-    /*read from the slave*/
-    messages[0].addr = device_addr;
-    messages[0].flags = I2C_M_RD; //read data from slave to master
-    messages[0].len = sizeof(inbuf[0]);
-    messages[0].buf = &inbuf[0];
-
-    // /*write command to the slave*/
-    // messages[2].addr  = device_addr;
-    // messages[2].flags = 0;
-    // messages[2].len   = sizeof(command);
-    // messages[2].buf = &command;
-
-    /*read from the slave*/
-    messages[1].addr = device_addr;
-    messages[1].flags = I2C_M_RD; //read data from slave to master
-    messages[1].len = sizeof(inbuf[1]);
-    messages[1].buf = &inbuf[1];
-
-
-    packets.msgs  = messages;
-    packets.nmsgs = 2;
-
-    if(ioctl(file,I2C_RDWR,&packets) < 0){
-        perror("\n\rError reading a word");
-        return -1; 
-    }
-    val[0] = inbuf[0];
-    val[1] = inbuf[1];
-
-    return 0;
-
-}
 
 
 int write_word(int file, unsigned char device_addr, int* command)
@@ -285,5 +137,55 @@ int write_word(int file, unsigned char device_addr, int* command)
         return -1;
     }
 
+    return 0;    
+}
+
+
+int main(void)
+{
+    int i2c_fd;                         //file descriptor for i2c bus
+    int status;
+    uint8_t sensor_lsb, sensor_msb;     //read data 
+    uint16_t sensor_val;                
+
+    if((i2c_fd = open(I2C_DEVICE,O_RDWR)) < 0){
+        perror("Opening I2C file error");
+        return -1;
+    }
+
+    if(ioctl(i2c_fd,I2C_SLAVE,VEML_ADDR) < 0){
+        perror("I2C ioctl error");
+        return -1;
+    }
+
+    //power on the sensor
+    if((status = write_word(i2c_fd,VEML_ADDR,power_on_command)) != 0) 
+    {
+        perror("Could not power on the ambient light sensor");
+        return -1;
+    }
+
+
+    //power save command on
+    if((status = write_word(i2c_fd,VEML_ADDR,psaveon_command)) != 0)
+    {
+        perror("Could not set up power saving mode");
+        return -1;
+    }
+
+    printf("\n\rDevice setup to read values from the sensor");
+
+    if((status = write_single_byte(i2c_fd,VEML_ADDR,read_command)) != 0)
+    {
+        perror("Phase 1 write for read failed");
+        return -1;
+    }
+    
+    
+    while(1)
+    {
+        sensor_val = i2c_smbus_read_word_data(i2c_fd,read_command);
+        printf("\n\r received sensor value : %d",sensor_val);
+    }
     return 0;    
 }
