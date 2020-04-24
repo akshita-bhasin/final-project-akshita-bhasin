@@ -300,6 +300,7 @@ void rx_uart(void)
             printf("Actuator = %d\n", shmem_rx.actuator);
             printf("Sensor value = %d\n", shmem_rx.value);
             memcpy((void*)shmem_rx_ptr, (void*)(&share_mem_ptr[0]), sizeof(actuator_shmem));
+            ret = 1;
         }
         sem_post(actuator_sem);
 
