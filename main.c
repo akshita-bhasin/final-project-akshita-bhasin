@@ -264,7 +264,7 @@ void rx_uart(void)
     actuator_shmem shmem_rx;
     actuator_shmem *shmem_rx_ptr = &shmem_rx;
     actuator_shmem * share_mem_ptr= NULL;
-    int ret, count=1;
+    int ret=1, count=1;
 
     if((shm_2_fd = shm_open(ACTUATOR_SHMEM_DEF, O_RDWR, 0666)) < 0)
     {
