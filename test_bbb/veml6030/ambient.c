@@ -145,7 +145,7 @@ int main(void)
 {
     int i2c_fd;                         //file descriptor for i2c bus
     int status;
-    uint8_t sensor_lsb, sensor_msb;     //read data 
+    //uint8_t sensor_lsb, sensor_msb;     //read data 
     uint16_t sensor_val;                
 
     if((i2c_fd = open(I2C_DEVICE,O_RDWR)) < 0){
