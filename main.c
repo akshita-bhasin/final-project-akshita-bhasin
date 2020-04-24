@@ -506,22 +506,7 @@ int main(void)
 
 	rx_uart();
 
-	fork_id = fork();
 	wait(&status);	
-
-	if(fork_id < 0)
-	{
-		exit(1);
-	}
-
-	if(fork_id > 0)
-	{
-		exit(0);
-	}
-	
-	setsid();
-
-	chdir("/");
 
 	actuator_task();
 	
