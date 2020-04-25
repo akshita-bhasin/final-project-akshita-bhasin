@@ -262,7 +262,7 @@ void rx_uart(void)
     actuator_shmem * share_mem_ptr= NULL;
     int count=1;
 
-    if((shm_2_fd = shm_open(ACTUATOR_SHMEM_DEF, O_RDWR, 0666)) < 0)
+    if((shm_2_fd = shm_open(ACTUATOR_SHMEM_DEF, O_RDWR, 0)) < 0)
     {
         perror("shm_open");
         exit(1);
@@ -296,7 +296,7 @@ void rx_uart(void)
             printf("Actuator value = %d\n", shmem_rx.value);
 
             memcpy((void*)shmem_rx_ptr, (void*)(&share_mem_ptr[0]), sizeof(actuator_shmem));
-            printf("Test if it reaches here");
+            // printf("Test if it reaches here\n");
             sem_post(actuator_sem);
         // }
 
@@ -315,7 +315,7 @@ void rx_uart(void)
         exit(1);
     }
 
-    printf("Testing task working");
+    printf("Testing task working\n");
     sem_close(actuator_sem);
 }
 
@@ -330,7 +330,7 @@ void actuator_task(void)
     actuator_shmem *share_mem_act_ptr = &share_mem_act;
     actuator_shmem *share_mem_ptr = NULL;
 
-    if((shm_2_fd = shm_open(ACTUATOR_SHMEM_DEF,O_RDWR, 0666)) < 0)
+    if((shm_2_fd = shm_open(ACTUATOR_SHMEM_DEF,O_RDWR, 0)) < 0)
     {
         perror("SHM open");
         exit(1);
@@ -433,11 +433,6 @@ void actuator_task(void)
 
 }
 
-void task_test(void)
-{
-    printf("Test task");
-}
-
 int main(void)
 {
     sem_t *main_sem;
@@ -501,9 +496,9 @@ int main(void)
 
 	rx_uart();
 
-    printf("Outside rx_uart");
+    printf("Outside rx_uart\n");
     fork_id = fork();
-    printf("fork_id after rx_uart: %d", fork_id);
+    printf("fork_id after rx_uart: %d\n", fork_id);
 
 	if(fork_id < 0)
 	{
