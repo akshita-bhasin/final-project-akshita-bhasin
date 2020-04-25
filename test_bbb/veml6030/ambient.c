@@ -174,11 +174,11 @@ int main(void)
 
     printf("\n\rDevice setup to read values from the sensor");
 
-    if((status = write_single_byte(i2c_fd,VEML_ADDR,read_command)) != 0)
-    {
-        perror("Phase 1 write for read failed");
-        return -1;
-    }
+    // if((status = write_single_byte(i2c_fd,VEML_ADDR,read_command)) != 0)
+    // {
+    //     perror("Phase 1 write for read failed");
+    //     return -1;
+    // }
     
     
     while(1)
