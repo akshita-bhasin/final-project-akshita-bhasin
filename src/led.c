@@ -129,7 +129,7 @@ int gpio_set_value(unsigned int gpio, unsigned int value)
 
     fd = open(buf, O_WRONLY);
     if (fd < 0) {
-        perror("gpio/set-value");
+        printf("gpio/set-value: %s", buf);
         return fd;
     }
 
