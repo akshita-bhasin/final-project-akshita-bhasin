@@ -437,6 +437,7 @@ int main(void)
 {
     sem_t *main_sem;
 	pid_t fork_id = 0;
+    int task_count = TASKS, status;
 
 	main_sem = sem_open(tmp_sem_name, O_CREAT, 0600, 0);
 	sem_close(main_sem);
@@ -510,6 +511,8 @@ int main(void)
         actuator_task();
 	}
 
+
+
     // fork_id = fork();
 
 	// if(fork_id < 0)
@@ -523,6 +526,15 @@ int main(void)
 	// }
 
     // task_test();
+
+    while (task_count > 0)
+    {
+        wait(&status);
+        --task_count;
+
+        syslog(LOG_DEBUG, "[MAIN] Child with PID %ld exited with status %d\n", (long)wait_pid, status);
+        PDEBUG("[MAIN] Child with PID %ld exited with status %d\n", (long)wait_pid, status);
+    }
 	
 	sem_unlink(tmp_sem_name);
     sem_unlink(rx_sem_name);
