@@ -507,11 +507,6 @@ int main(void)
 		exit(1);
 	}
 
-	if(fork_id > 0)
-	{
-		exit(0);
-	}
-
     printf("fork_id after rx_uart: %d", fork_id);
 
     printf("Before calling actuator task");
