@@ -509,6 +509,7 @@ int main(void)
 
     printf("Outside rx_uart");
     fork_id = fork();
+    printf("fork_id after rx_uart: %d", fork_id);
 
 	if(fork_id < 0)
 	{
@@ -520,11 +521,6 @@ int main(void)
         actuator_task();
 		exit(0);
 	}
-
-    printf("fork_id after rx_uart: %d", fork_id);
-
-    printf("Before calling actuator task");
-	actuator_task();
 
     fork_id = fork();
 
