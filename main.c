@@ -309,6 +309,7 @@ void rx_uart(void)
             }
             else if(shmem_rx.actuator == 1)
             {
+                printf("Buzzer on");
                 if((ret = gpio_set_value(BUZ, shmem_rx.value)) != 0)
                 {
                     perror("gpio_set_value");
@@ -514,20 +515,20 @@ int main(void)
 		exit(0);
 	}
 
-    printf("Outside rx_uart\n");
-    fork_id = fork();
-    printf("fork_id after rx_uart: %d\n", fork_id);
+    // printf("Outside rx_uart\n");
+    // fork_id = fork();
+    // printf("fork_id after rx_uart: %d\n", fork_id);
 
-	if(fork_id < 0)
-	{
-		exit(1);
-	}
+	// if(fork_id < 0)
+	// {
+	// 	exit(1);
+	// }
 
-	if(fork_id == 0)
-	{
-        actuator_task();
-		exit(0);
-	}
+	// if(fork_id == 0)
+	// {
+    //     actuator_task();
+	// 	exit(0);
+	// }
 
     // fork_id = fork();
 
