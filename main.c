@@ -446,8 +446,8 @@ void tx_uart(void)
         if (ret == 0)
         {
             memcpy((void*)shmem_tx_ptr, (void*)(&share_mem_ptr[0]), sizeof(sensor_shmem));
-            printf("Sensor = %d\n", shmem_tx.sensor);
-            printf("Sensor value = %d\n", shmem_tx.value);
+            printf("Temperature Sensor = %d\n", shmem_tx.sensor);
+            printf("Temperature Sensor value = %d\n", shmem_tx.value);
             if((count = write(uart_fd1, shmem_tx_ptr, sizeof(sensor_shmem))) < 0)
             {
                 perror("write");
@@ -458,8 +458,8 @@ void tx_uart(void)
         if(sem_wait(ambient_sem) == 0)
         {
             memcpy((void*)shmem_tx_ptr, (void*)(&share_mem_ptr[1]), sizeof(sensor_shmem));
-            printf("Sensor = %d\n", shmem_tx.sensor);
-            printf("Sensor value = %d\n", shmem_tx.value);
+            printf("Ambient Sensor = %d\n", shmem_tx.sensor);
+            printf("Ambient Sensor value = %d\n", shmem_tx.value);
             if((count = write(uart_fd1, shmem_tx_ptr, sizeof(sensor_shmem))) < 0)
             {
                 perror("write");
