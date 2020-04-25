@@ -386,8 +386,8 @@ void ambient_task(void)
     // {
         sensor = read_values();
 
-        share_mem_ptr->sensor = 2;
-        share_mem_ptr->value = sensor;
+        share_mem_veml_ptr->sensor = 2;
+        share_mem_veml_ptr->value = sensor;
 
         memcpy((void*)(&share_mem_ptr[1]), (void*)share_mem_veml_ptr, sizeof(sensor_shmem));
 
