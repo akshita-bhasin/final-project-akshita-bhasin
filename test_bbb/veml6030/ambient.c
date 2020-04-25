@@ -145,7 +145,7 @@ int main(void)
 {
     int i2c_fd;                         //file descriptor for i2c bus
     int status;
-    uint8_t sensor_val;                
+    uint8_t lsb, msb;                
 
     if((i2c_fd = open(I2C_DEVICE,O_RDWR)) < 0){
         perror("Opening I2C file error");
@@ -183,8 +183,10 @@ int main(void)
     
     while(1)
     {
-        sensor_val = i2c_smbus_read_byte_data(i2c_fd,read_command);
-        printf("\n\r received sensor value : %d",sensor_val);
+        lsb = i2c_smbus_read_word_data(i2c_fd, read_command);
+        msb = i2c_smbus_read_word_data(i2c_fd,read_command);
+
+        printf("\n\rlsb received %x   msb received %x",lsb,msb);
     }
     return 0;    
 }
