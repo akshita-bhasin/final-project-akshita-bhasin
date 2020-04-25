@@ -246,7 +246,6 @@ int ambient_power_save_on(void)
 int read_values(void)
 {
     int value,status;
-    printf("\n\rDevice setup to read values from the sensor");
 
     if((status = write_single_byte(i2c_fd,VEML_ADDR,read_command)) != 0)
     {
@@ -397,8 +396,10 @@ void ambient_task(void)
         printf("Sensor values: %d", sensor);
 
         sleep(2);
+    
+    printf("Test share mem issue: \nshm1: %d, %d\nshm2: %d, %d",
+    share_mem_ptr[0].sensor, share_mem_ptr[0].value, share_mem_ptr[1].sensor, share_mem_ptr[1].value);
 
-    /* Unmap the mapped shared memory segment from the address space of the process */
     if(munmap(share_mem_ptr, SENSOR_SHMEM_PROD_COUNT * sizeof(sensor_shmem)) < 0)
     {
         perror("munmap");
