@@ -174,11 +174,11 @@ int main(void)
 
     printf("\n\rDevice setup to read values from the sensor");
 
-    // if((status = write_single_byte(i2c_fd,VEML_ADDR,read_command)) != 0)
-    // {
-    //     perror("Phase 1 write for read failed");
-    //     return -1;
-    // }
+    if((status = write_single_byte(i2c_fd,VEML_ADDR,read_command)) != 0)
+    {
+        perror("Phase 1 write for read failed");
+        return -1;
+    }
     
     
     while(1)
@@ -186,7 +186,7 @@ int main(void)
         lsb = i2c_smbus_read_byte_data(i2c_fd, read_command);
         msb = i2c_smbus_read_byte_data(i2c_fd,read_command);
         value = ((msb << 8) | lsb);
-        printf("\n\rlsb received %d   msb received %d  value %d",lsb,msb,value);
+        printf("\n\rlsb received %x   msb received %x  value %x",lsb,msb,value);
 
     }
     return 0;    
