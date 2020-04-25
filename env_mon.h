@@ -61,3 +61,4 @@ typedef struct {
 
 char* tmp_sem_name = "tmp102_sem";
 char* act_sem_name = "actuat_sem";
+char* rx_sem_name = "uart_rx_sem";
