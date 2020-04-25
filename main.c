@@ -256,7 +256,7 @@ void rx_uart(void)
 {
     printf("In UART Rx task\n");
     int shm_2_fd;
-    sem_t *actuator_sem, *receive_sem;
+    sem_t *actuator_sem;
     actuator_shmem shmem_rx;
     actuator_shmem *shmem_rx_ptr = &shmem_rx;
     actuator_shmem * share_mem_ptr= NULL;
@@ -275,9 +275,7 @@ void rx_uart(void)
     }
 
     actuator_sem = sem_open(act_sem_name, 0, 0600, 0);
-    receive_sem = sem_open(rx_sem_name, 0, 0600, 0);
 
-    sem_post(receive_sem);
     // while(1)
     // {
         // ret = sem_wait(actuator_sem);
@@ -297,7 +295,6 @@ void rx_uart(void)
             printf("Actuator = %d\n", shmem_rx.actuator);
             printf("Actuator value = %d\n", shmem_rx.value);
 
-            sem_wait(receive_sem);
             memcpy((void*)share_mem_ptr, (void*)(&shmem_rx_ptr[0]), sizeof(actuator_shmem));
             sem_post(actuator_sem);
         // }
@@ -318,7 +315,6 @@ void rx_uart(void)
     }
 
     printf("Testing task working");
-    sem_close(receive_sem);
     sem_close(actuator_sem);
 }
 
@@ -328,7 +324,7 @@ void actuator_task(void)
     printf("In Actuator Task");
 
     int shm_2_fd, ret;
-    sem_t *actuator_sem, *receive_sem;
+    sem_t *actuator_sem;
     actuator_shmem share_mem_act;
     actuator_shmem *share_mem_act_ptr = &share_mem_act;
     actuator_shmem *share_mem_ptr = NULL;
@@ -350,8 +346,6 @@ void actuator_task(void)
         perror("sem_open");
         exit(1);
     }
-
-    receive_sem = sem_open(rx_sem_name, 0, 0666, 0);
 
     while(1)
     {
@@ -389,7 +383,7 @@ void actuator_task(void)
         // }
 
         // usleep(100000);
-        sem_post(receive_sem);
+        sem_post(actuator_sem);
     }
 
     if(munmap(share_mem_ptr, sizeof(actuator_shmem)) < 0)
@@ -399,7 +393,6 @@ void actuator_task(void)
     }
 
     sem_close(actuator_sem);
-    sem_close(receive_sem);
 
     if(close(shm_2_fd) < 0)
     {
