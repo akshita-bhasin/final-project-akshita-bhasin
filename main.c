@@ -330,7 +330,7 @@ void actuator_task(void)
     actuator_shmem *share_mem_act_ptr = &share_mem_act;
     actuator_shmem *share_mem_ptr = NULL;
 
-    if((shm_2_fd = shm_open(ACTUATOR_SHMEM_DEF,O_RDWR, 0)) < 0)
+    if((shm_2_fd = shm_open(ACTUATOR_SHMEM_DEF, O_CREAT | O_RDWR, 0)) < 0)
     {
         perror("SHM open");
         exit(1);
@@ -491,10 +491,9 @@ int main(void)
 
 	if(fork_id > 0)
 	{
+        rx_uart();
 		exit(0);
 	}
-
-	rx_uart();
 
     printf("Outside rx_uart\n");
     fork_id = fork();
