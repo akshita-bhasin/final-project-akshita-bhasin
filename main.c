@@ -22,7 +22,7 @@ void signal_handler(int signum)
 
 void tmp102_init(void)
 {
-  char *bus = "/dev/i2c-1"; /* Pins P9_17 and P9_18 */
+  char *bus = "/dev/i2c-2"; /* Pins P9_19 and P9_20 */
   int addr = SLAVE_ADDR;          /* The I2C address of TMP102 */
   
   if ((tmp102_fd1 = open(bus, O_RDWR)) < 0) {
