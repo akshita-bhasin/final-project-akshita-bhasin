@@ -303,11 +303,11 @@ void rx_uart(void)
         /* Wait for humidty and add sleep */
     // }
 
-    if(close(shm_2_fd) < 0)
-    {
-        perror("close");
-        exit(1);
-    }
+    // if(close(shm_2_fd) < 0)
+    // {
+    //     perror("close");
+    //     exit(1);
+    // }
 
     if(munmap(share_mem_ptr, sizeof(actuator_shmem)) < 0)
     {
@@ -322,7 +322,7 @@ void rx_uart(void)
 /* Consumer for shared memory 2*/
 void actuator_task(void)
 {
-    printf("In Actuator Task");
+    printf("In Actuator Task\n");
 
     int shm_2_fd, ret;
     sem_t *actuator_sem;
@@ -330,7 +330,7 @@ void actuator_task(void)
     actuator_shmem *share_mem_act_ptr = &share_mem_act;
     actuator_shmem *share_mem_ptr = NULL;
 
-    if((shm_2_fd = shm_open(ACTUATOR_SHMEM_DEF,O_RDONLY, 0)) < 0)
+    if((shm_2_fd = shm_open(ACTUATOR_SHMEM_DEF,O_RDWR, 0)) < 0)
     {
         perror("SHM open");
         exit(1);
@@ -437,7 +437,6 @@ int main(void)
 {
     sem_t *main_sem;
 	pid_t fork_id = 0;
-    int task_count = TASKS, status;
 
 	main_sem = sem_open(tmp_sem_name, O_CREAT, 0600, 0);
 	sem_close(main_sem);
@@ -509,9 +508,8 @@ int main(void)
 	if(fork_id == 0)
 	{
         actuator_task();
+		exit(0);
 	}
-
-
 
     // fork_id = fork();
 
@@ -526,12 +524,6 @@ int main(void)
 	// }
 
     // task_test();
-
-    while (task_count > 0)
-    {
-        wait(&status);
-        --task_count;
-    }
 	
 	sem_unlink(tmp_sem_name);
     sem_unlink(rx_sem_name);
