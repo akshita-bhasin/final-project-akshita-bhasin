@@ -295,8 +295,8 @@ void rx_uart(void)
             printf("Actuator = %d\n", shmem_rx.actuator);
             printf("Actuator value = %d\n", shmem_rx.value);
 
-            memcpy((void*)share_mem_ptr, (void*)(&shmem_rx_ptr[0]), sizeof(actuator_shmem));
-            printf("TESt if it reaches here");
+            memcpy((void*)shmem_rx_ptr, (void*)(&share_mem_ptr[0]), sizeof(actuator_shmem));
+            printf("Test if it reaches here");
             sem_post(actuator_sem);
         // }
 
@@ -351,7 +351,7 @@ void actuator_task(void)
     while(1)
     {
         sem_wait(actuator_sem);
-        memcpy((void*)(share_mem_act_ptr), (void*)share_mem_ptr, sizeof(actuator_shmem));
+        memcpy((void*)(share_mem_ptr), (void*)&(share_mem_act_ptr[0]), sizeof(actuator_shmem));
         printf("Acutator = %d\n", share_mem_act.actuator);
         printf("Value = %d\n", share_mem_act.value);
         if(share_mem_act.actuator == 0)
