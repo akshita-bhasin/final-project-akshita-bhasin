@@ -581,6 +581,8 @@ int main(void)
 
 	main_sem = sem_open(tmp_sem_name, O_CREAT, 0600, 0);
 	sem_close(main_sem);
+	main_sem = sem_open(amb_sem_name, O_CREAT, 0600, 0);
+	sem_close(main_sem);
     main_sem = sem_open(rx_sem_name, O_CREAT, 0600, 0);
 	sem_close(main_sem);
     main_sem = sem_open(act_sem_name, O_CREAT, 0600, 0);
@@ -602,7 +604,7 @@ int main(void)
     veml_init();
     actuator_init();
 
-	ftruncate(shm_1_fd1, sizeof(sensor_shmem));
+	ftruncate(shm_1_fd1, SENSOR_SHMEM_PROD_COUNT * sizeof(sensor_shmem));
 
     ftruncate(shm_2_fd1, sizeof(actuator_shmem));
 
@@ -610,6 +612,19 @@ int main(void)
     close(shm_2_fd1);
 
 	tmp102_task();
+	fork_id = fork();
+
+	if(fork_id < 0)
+	{
+		exit(1);
+	}
+
+	if(fork_id > 0)
+	{
+		exit(0);
+	}
+
+    ambient_task();
 	fork_id = fork();
 
 	if(fork_id < 0)
