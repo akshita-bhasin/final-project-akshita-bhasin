@@ -9,7 +9,9 @@
 
 #include "env_mon.h"
 
-#define TASKS 5
+#define TASKS 4
+
+int shared_memory_check(void);
 
 void signal_handler(int signum)
 {
@@ -431,15 +433,15 @@ void actuator_task(void)
 
 }
 
+void task_test(void)
+{
+    printf("Test task");
+}
+
 int main(void)
 {
     sem_t *main_sem;
-	pid_t fork_id = 0, i, status, task_count=TASKS;
-
-    void(*task_names[])(void) = { tmp102_task, 
-                                   tx_uart,
-                                   rx_uart,
-                                   actuator_task };
+	pid_t fork_id = 0;
 
 	main_sem = sem_open(tmp_sem_name, O_CREAT, 0600, 0);
 	sem_close(main_sem);
@@ -468,61 +470,66 @@ int main(void)
 	close(shm_1_fd1);
     close(shm_2_fd1);
 
-    for(i=0; i<task_count; i++)
-    {
-        if((fork_id = fork()) < 0)
-        {
-            exit(EXIT_FAILURE);
-        }
-        else if(fork_id == 0)
-        {
-            (* task_names[i])();
+	tmp102_task();
+	fork_id = fork();
 
-            exit(EXIT_SUCCESS);
-        }
-    }
-    while(task_count > 0)
-    {
-        wait(&status);
-        --task_count;
-    }
-	// tmp102_task();
-	// fork_id = fork();
+	if(fork_id < 0)
+	{
+		exit(1);
+	}
 
-	// if(fork_id < 0)
-	// {
-	// 	exit(1);
-	// }
+	if(fork_id > 0)
+	{
+		exit(0);
+	}
 
-	// if(fork_id > 0)
-	// {
-	// 	exit(0);
-	// }
+	tx_uart();
 
-	// tx_uart();
+    fork_id = fork();
 
-    // fork_id = fork();
+	if(fork_id < 0)
+	{
+		exit(1);
+	}
 
-	// if(fork_id < 0)
-	// {
-	// 	exit(1);
-	// }
+	if(fork_id > 0)
+	{
+		exit(0);
+	}
 
-	// if(fork_id > 0)
-	// {
-	// 	exit(0);
-	// }
+	rx_uart();
 
-	// rx_uart();
+    printf("Outside rx_uart");
+    fork_id = fork();
 
-    // printf("Outside rx_uart");
-    // fork_id = fork();
+	if(fork_id < 0)
+	{
+		exit(1);
+	}
 
-    // printf("fork_id after rx_uart: %d", fork_id);
+	if(fork_id > 0)
+	{
+		exit(0);
+	}
 
+    printf("fork_id after rx_uart: %d", fork_id);
 
-    // printf("Before calling actuator task");
-	// actuator_task();
+    printf("Before calling actuator task");
+	actuator_task();
+
+    fork_id = fork();
+
+	if(fork_id < 0)
+	{
+		exit(1);
+	}
+
+	if(fork_id > 0)
+	{
+		exit(0);
+	}
+
+    task_test();
 	
 	sem_unlink(tmp_sem_name);
     sem_unlink(act_sem_name);
