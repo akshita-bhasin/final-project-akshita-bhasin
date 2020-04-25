@@ -185,7 +185,7 @@ int main(void)
     {
         lsb = i2c_smbus_read_byte_data(i2c_fd, read_command);
         msb = i2c_smbus_read_byte_data(i2c_fd,read_command);
-        value = (msb << 8) | lsb);
+        value = ((msb << 8) | lsb);
         printf("\n\rlsb received %d   msb received %d  value %d",lsb,msb,value);
 
     }
