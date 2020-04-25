@@ -510,7 +510,7 @@ int main(void)
 		exit(1);
 	}
 
-	if(fork_id > 0)
+	if(fork_id = 0)
 	{
         actuator_task();
 		exit(0);
