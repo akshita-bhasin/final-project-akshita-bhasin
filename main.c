@@ -141,7 +141,7 @@ void tmp102_task(void)
     }
 
     int shm_1_fd;
-    sem_t *temperature_sem;
+    // sem_t *temperature_sem;
     sensor_shmem share_mem_temp = {1, c};
     sensor_shmem *share_mem_temp_ptr = &share_mem_temp;
     sensor_shmem *share_mem_ptr = NULL;
@@ -158,15 +158,15 @@ void tmp102_task(void)
         exit(1);
     }
 
-    if((temperature_sem = sem_open(tmp_sem_name, 0, 0666, 0)) < 0)
-    {
-        perror("sem_open");
-        exit(1);
-    }
+    // if((temperature_sem = sem_open(tmp_sem_name, 0, 0666, 0)) < 0)
+    // {
+    //     perror("sem_open");
+    //     exit(1);
+    // }
 
     memcpy((void*)(&share_mem_ptr[0]), (void*)share_mem_temp_ptr, sizeof(sensor_shmem));
 
-    sem_post(temperature_sem);
+    // sem_post(temperature_sem);
 
     if(munmap(share_mem_ptr, sizeof(sensor_shmem)) < 0)
     {
@@ -174,7 +174,7 @@ void tmp102_task(void)
         exit(1);
     }
 
-    sem_close(temperature_sem);
+    // sem_close(temperature_sem);
 
     if(close(shm_1_fd) < 0)
     {
@@ -188,11 +188,11 @@ void tx_uart(void)
 {
     printf("In UART Tx task\n");
     int shm_1_fd;
-    sem_t *temperature_sem;
+    // sem_t *temperature_sem;
     sensor_shmem shmem_tx;
     sensor_shmem *shmem_tx_ptr = &shmem_tx;
     sensor_shmem * share_mem_ptr= NULL;
-    int ret=1, count;
+    int count;
 
     if((shm_1_fd = shm_open(SENSOR_SHMEM_DEF, O_RDWR, 0666)) < 0)
     {
@@ -206,14 +206,14 @@ void tx_uart(void)
         exit(1);
     }
 
-    temperature_sem = sem_open(tmp_sem_name, 0, 0600, 0);
+    // temperature_sem = sem_open(tmp_sem_name, 0, 0600, 0);
 
-    while(ret!=0)
+    while(1)
     {
-        ret = sem_wait(temperature_sem);
+        // ret = sem_wait(temperature_sem);
         
-        if (ret == 0)
-        {
+        // if (ret == 0)
+        // {
             memcpy((void*)shmem_tx_ptr, (void*)(&share_mem_ptr[0]), sizeof(sensor_shmem));
             printf("Sensor = %d\n", shmem_tx.sensor);
             printf("Sensor value = %d\n", shmem_tx.value);
@@ -230,8 +230,8 @@ void tx_uart(void)
                 perror("write");
                 exit(1);
             }
-        }
-        sem_post(temperature_sem);
+        // }
+        // sem_post(temperature_sem);
 
         /* Wait for humidty and add sleep */
     }
@@ -248,7 +248,7 @@ void tx_uart(void)
         exit(1);
     }
 
-    sem_close(temperature_sem);
+    // sem_close(temperature_sem);
 }
 
 /* Producer for shared memory 2*/
@@ -256,7 +256,7 @@ void rx_uart(void)
 {
     printf("In UART Rx task\n");
     int shm_2_fd;
-    sem_t *actuator_sem;
+    // sem_t *actuator_sem;
     actuator_shmem shmem_rx;
     actuator_shmem *shmem_rx_ptr = &shmem_rx;
     actuator_shmem * share_mem_ptr= NULL;
@@ -274,7 +274,7 @@ void rx_uart(void)
         exit(1);
     }
 
-    actuator_sem = sem_open(act_sem_name, 0, 0600, 0);
+    // actuator_sem = sem_open(act_sem_name, 0, 0600, 0);
 
     // while(1)
     // {
@@ -297,7 +297,7 @@ void rx_uart(void)
 
             memcpy((void*)shmem_rx_ptr, (void*)(&share_mem_ptr[0]), sizeof(actuator_shmem));
             printf("Test if it reaches here");
-            sem_post(actuator_sem);
+            // sem_post(actuator_sem);
         // }
 
         /* Wait for humidty and add sleep */
@@ -316,7 +316,7 @@ void rx_uart(void)
     }
 
     printf("Testing task working");
-    sem_close(actuator_sem);
+    // sem_close(actuator_sem);
 }
 
 /* Consumer for shared memory 2*/
@@ -325,7 +325,7 @@ void actuator_task(void)
     printf("In Actuator Task");
 
     int shm_2_fd, ret;
-    sem_t *actuator_sem;
+    // sem_t *actuator_sem;
     actuator_shmem share_mem_act;
     actuator_shmem *share_mem_act_ptr = &share_mem_act;
     actuator_shmem *share_mem_ptr = NULL;
@@ -342,15 +342,15 @@ void actuator_task(void)
         exit(1);
     }
 
-    if((actuator_sem = sem_open(act_sem_name, 0, 0666, 0)) < 0)
-    {
-        perror("sem_open");
-        exit(1);
-    }
+    // if((actuator_sem = sem_open(act_sem_name, 0, 0666, 0)) < 0)
+    // {
+    //     perror("sem_open");
+    //     exit(1);
+    // }
 
     while(1)
     {
-        sem_wait(actuator_sem);
+        // sem_wait(actuator_sem);
         memcpy((void*)(share_mem_ptr), (void*)&(share_mem_act_ptr[0]), sizeof(actuator_shmem));
         printf("Acutator = %d\n", share_mem_act.actuator);
         printf("Value = %d\n", share_mem_act.value);
@@ -384,7 +384,7 @@ void actuator_task(void)
         // }
 
         // usleep(100000);
-        sem_post(actuator_sem);
+        // sem_post(actuator_sem);
     }
 
     if(munmap(share_mem_ptr, sizeof(actuator_shmem)) < 0)
@@ -393,7 +393,7 @@ void actuator_task(void)
         exit(1);
     }
 
-    sem_close(actuator_sem);
+    // sem_close(actuator_sem);
 
     if(close(shm_2_fd) < 0)
     {
@@ -440,15 +440,13 @@ void task_test(void)
 
 int main(void)
 {
-    sem_t *main_sem;
+    // sem_t *main_sem;
 	pid_t fork_id = 0;
 
-	main_sem = sem_open(tmp_sem_name, O_CREAT, 0600, 0);
-	sem_close(main_sem);
-    main_sem = sem_open(rx_sem_name, O_CREAT, 0600, 0);
-	sem_close(main_sem);
-    main_sem = sem_open(act_sem_name, O_CREAT, 0600, 0);
-	sem_close(main_sem);
+	// main_sem = sem_open(tmp_sem_name, O_CREAT, 0600, 0);
+	// sem_close(main_sem);
+    // main_sem = sem_open(act_sem_name, O_CREAT, 0600, 0);
+	// sem_close(main_sem);
 	int shm_1_fd1 = shm_open(SENSOR_SHMEM_DEF,O_CREAT | O_RDWR, 0666);
 	if(shm_1_fd1 < 0)
 	{ 
@@ -530,9 +528,8 @@ int main(void)
 
     task_test();
 	
-	sem_unlink(tmp_sem_name);
-    sem_unlink(rx_sem_name);
-    sem_unlink(act_sem_name);
+	// sem_unlink(tmp_sem_name);
+    // sem_unlink(act_sem_name);
 
 	shm_unlink(SENSOR_SHMEM_DEF);
     shm_unlink(ACTUATOR_SHMEM_DEF);
