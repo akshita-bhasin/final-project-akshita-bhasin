@@ -512,10 +512,9 @@ int main(void)
 
 	if(fork_id == 0)
 	{
+        actuator_task();
 		exit(0);
 	}
-
-    actuator_task();
 
     // fork_id = fork();
 
