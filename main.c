@@ -330,7 +330,7 @@ void actuator_task(void)
     actuator_shmem *share_mem_act_ptr = &share_mem_act;
     actuator_shmem *share_mem_ptr = NULL;
 
-    if((shm_2_fd = shm_open(ACTUATOR_SHMEM_DEF,O_RDWR, 0)) < 0)
+    if((shm_2_fd = shm_open(ACTUATOR_SHMEM_DEF,O_RDONLY, 0)) < 0)
     {
         perror("SHM open");
         exit(1);
