@@ -111,6 +111,175 @@ void actuator_deinit(void)
     }
 }
 
+ __s32 i2c_smbus_access(int file, char read_write, __u8 command, int size, union i2c_smbus_data *data)
+ {
+     struct i2c_smbus_ioctl_data args;
+     
+     args.read_write = read_write;
+     args.command    = command;
+     args.size       = size;
+     args.data       = data;
+
+     return ioctl(file,I2C_SMBUS,&args);
+ }
+
+static inline __s32 i2c_smbus_read_byte_data(int file, __u8 command)
+{
+    union i2c_smbus_data data;
+    if(i2c_smbus_access(file,I2C_SMBUS_READ,command,I2C_SMBUS_BYTE_DATA,&data))
+        return -1;
+    else
+    {
+        return 0x0FF & data.byte;
+    }
+    
+}
+
+
+static inline __s32 i2c_smbus_read_word_data(int file, __u8 command)
+{
+    union i2c_smbus_data data;
+    if(i2c_smbus_access(file,I2C_SMBUS_READ,command,I2C_SMBUS_WORD_DATA,&data))
+        return -1;
+    else
+    {
+        return 0x0FFFF & data.byte;
+    }
+}
+
+ /*
+// https://stackoverflow.com/questions/52975817/setup-i2c-reading-and-writing-in-c-language
+// */
+
+int write_single_byte(int file, unsigned char device_addr, int command)
+{
+    uint8_t outbuf;
+    outbuf = command;
+    struct i2c_rdwr_ioctl_data packets;
+    struct i2c_msg message;
+    /*write command to the slave*/
+    message.addr  = device_addr;
+    message.flags = 0;
+    message.len   = sizeof(outbuf);
+    message.buf = &outbuf;
+    packets.msgs = &message;
+    packets.nmsgs = 1;
+    if(ioctl(file,I2C_RDWR,&packets) < 0){
+        perror("\n\rError writing single byte");
+        return -1;
+    }
+
+    return 0;    
+}
+
+
+
+
+int write_word(int file, unsigned char device_addr, int* command)
+{
+    uint8_t outbuf[3];
+    
+    outbuf[0] = command[0];
+    outbuf[1] = command[1];
+    outbuf[2] = command[2];
+
+    struct i2c_rdwr_ioctl_data packets;
+    struct i2c_msg message;
+    /*write command to the slave*/
+    message.addr  = device_addr;
+    message.flags = 0;
+    message.len   = sizeof(outbuf);
+    message.buf = outbuf;
+
+
+    packets.msgs = &message;
+    packets.nmsgs = 1;
+    if(ioctl(file,I2C_RDWR,&packets) < 0){
+        perror("Error writing a word");
+        return -1;
+    }
+
+    return 0;    
+}
+
+
+int ambient_init(void)
+{ 
+    if((i2c_fd = open(I2C_DEVICE,O_RDWR)) < 0){
+        perror("Opening I2C file error");
+        return -1;
+    }
+
+    if(ioctl(i2c_fd,I2C_SLAVE,VEML_ADDR) < 0){
+        perror("I2C ioctl error");
+        return -1;
+    }
+    return 0;
+
+}
+
+int ambient_on(void)
+{
+    uint8_t status;
+    //power on the sensor
+    if((status = write_word(i2c_fd,VEML_ADDR,power_on_command)) != 0) 
+    {
+        perror("Could not power on the ambient light sensor");
+        return -1;
+    }
+    return status;
+ 
+}
+
+int ambient_power_save_on(void)
+{
+    uint8_t status;
+    if((status = write_word(i2c_fd,VEML_ADDR,psaveon_command)) != 0)
+    {
+        perror("Could not set up power saving mode");
+        return -1;
+    }
+    return status;
+
+}
+
+int read_values(void)
+{
+    int value,status;
+    printf("\n\rDevice setup to read values from the sensor");
+
+    if((status = write_single_byte(i2c_fd,VEML_ADDR,read_command)) != 0)
+    {
+        perror("Phase 1 write for read failed");
+        return -1;
+    }
+    value = i2c_smbus_read_word_data(i2c_fd,read_command);
+    return value;
+   
+}
+
+void veml_init(void)
+{
+    int ret;
+    ret = ambient_init(); 
+    if(ret == -1)
+    {
+        perror("Error in initialization");
+    } 
+
+    ret = ambient_on();
+    if(ret == -1)
+    {
+        perror("Error switching on ambient");
+    }
+
+    ret = ambient_power_save_on();
+    if(ret == -1)
+    {
+        perror("Failed to set power saving mode");
+    }
+}
+
 /* Producer 1 for shared memory 1 */
 void tmp102_task(void)
 {
@@ -153,7 +322,7 @@ void tmp102_task(void)
         exit(1);
     }
 
-    if((share_mem_ptr = (sensor_shmem *)mmap(NULL, sizeof(sensor_shmem), PROT_READ|PROT_WRITE, MAP_SHARED, shm_1_fd, 0)) < 0)
+    if((share_mem_ptr = (sensor_shmem *)mmap(NULL, SENSOR_SHMEM_PROD_COUNT * sizeof(sensor_shmem), PROT_READ|PROT_WRITE, MAP_SHARED, shm_1_fd, 0)) < 0)
     {
         perror("mmap");
         exit(1);
@@ -169,7 +338,7 @@ void tmp102_task(void)
 
     sem_post(temperature_sem);
 
-    if(munmap(share_mem_ptr, sizeof(sensor_shmem)) < 0)
+    if(munmap(share_mem_ptr, SENSOR_SHMEM_PROD_COUNT * sizeof(sensor_shmem)) < 0)
     {
         perror("munmap");
         exit(1);
@@ -184,12 +353,72 @@ void tmp102_task(void)
     }
 }
 
+/* Producer 2 for Shared Memory 1 */
+void ambient_task(void)
+{
+    printf("In LUX Task");
+
+    int shm_1_fd;
+    sem_t *ambient_sem;
+    sensor_shmem share_mem_veml = {0, 0};
+    sensor_shmem *share_mem_veml_ptr = &share_mem_veml;
+    sensor_shmem *share_mem_ptr = NULL;
+    int sensor;
+
+    if((shm_1_fd = shm_open(SENSOR_SHMEM_DEF,O_RDWR, 0666)) < 0)
+    {
+        perror("SHM open");
+        exit(1);
+    }
+
+    if((share_mem_ptr = (sensor_shmem *)mmap(NULL, SENSOR_SHMEM_PROD_COUNT * sizeof(sensor_shmem), PROT_READ|PROT_WRITE, MAP_SHARED, shm_1_fd, 0)) < 0)
+    {
+        perror("mmap");
+        exit(1);
+    }
+
+    if((ambient_sem = sem_open(amb_sem_name, 0, 0666, 0)) < 0)
+    {
+        perror("sem_open");
+        exit(1);
+    }
+
+    // while(1)
+    // {
+        sensor = read_values();
+
+        share_mem_ptr->sensor = 2;
+        share_mem_ptr->value = sensor;
+
+        memcpy((void*)(&share_mem_ptr[1]), (void*)share_mem_veml_ptr, sizeof(sensor_shmem));
+
+        sem_post(ambient_sem);
+
+        printf("Sensor values: %d", sensor);
+
+        sleep(2);
+
+    /* Unmap the mapped shared memory segment from the address space of the process */
+    if(munmap(share_mem_ptr, SENSOR_SHMEM_PROD_COUNT * sizeof(sensor_shmem)) < 0)
+    {
+        perror("munmap");
+    }
+
+    sem_close(ambient_sem);
+
+    if(close(shm_1_fd) < 0)
+    {
+        perror("close");
+        exit(1);
+    }
+}
+
 /*Consumer for shared memory 1*/
 void tx_uart(void)
 {
     printf("In UART Tx task\n");
     int shm_1_fd;
-    sem_t *temperature_sem;
+    sem_t *temperature_sem, *ambient_sem;
     sensor_shmem shmem_tx;
     sensor_shmem *shmem_tx_ptr = &shmem_tx;
     sensor_shmem * share_mem_ptr= NULL;
@@ -208,6 +437,7 @@ void tx_uart(void)
     }
 
     temperature_sem = sem_open(tmp_sem_name, 0, 0600, 0);
+    ambient_sem = sem_open(amb_sem_name, 0, 0600, 0);
 
     while(ret!=0)
     {
@@ -218,21 +448,25 @@ void tx_uart(void)
             memcpy((void*)shmem_tx_ptr, (void*)(&share_mem_ptr[0]), sizeof(sensor_shmem));
             printf("Sensor = %d\n", shmem_tx.sensor);
             printf("Sensor value = %d\n", shmem_tx.value);
-            // int count;
-            // char tx[20] = "Hello TM4C123GXL";
-            // printf("Sending: '%s'\n", tx);
-            // if ((count = write(uart_fd1, &tx, 17)) < 0)
-            // {
-            //     perror("write\n");
-            //     exit(1);
-            // }
             if((count = write(uart_fd1, shmem_tx_ptr, sizeof(sensor_shmem))) < 0)
             {
                 perror("write");
                 exit(1);
             }
         }
-        sem_post(temperature_sem);
+
+        if(sem_wait(ambient_sem) == 0)
+        {
+            memcpy((void*)shmem_tx_ptr, (void*)(&share_mem_ptr[1]), sizeof(sensor_shmem));
+            printf("Sensor = %d\n", shmem_tx.sensor);
+            printf("Sensor value = %d\n", shmem_tx.value);
+            if((count = write(uart_fd1, shmem_tx_ptr, sizeof(sensor_shmem))) < 0)
+            {
+                perror("write");
+                exit(1);
+            }
+        }
+        // sem_post(temperature_sem);
 
         /* Wait for humidty and add sleep */
     }
@@ -243,13 +477,14 @@ void tx_uart(void)
         exit(1);
     }
 
-    if(munmap(share_mem_ptr, sizeof(sensor_shmem)) < 0)
+    if(munmap(share_mem_ptr, SENSOR_SHMEM_PROD_COUNT * sizeof(sensor_shmem)) < 0)
     {
         perror("munmap");
         exit(1);
     }
 
     sem_close(temperature_sem);
+    sem_close(ambient_sem);
 }
 
 
@@ -298,7 +533,6 @@ void rx_uart(void)
             printf("Actuator value = %d\n", shmem_rx.value);
 
             // memcpy((void*)shmem_rx_ptr, (void*)(&share_mem_ptr[0]), sizeof(actuator_shmem));
-            shmem_rx.actuator = 0;
 
             if(shmem_rx.actuator == 0)
             {
@@ -340,120 +574,6 @@ void rx_uart(void)
     sem_close(actuator_sem);
 }
 
-/* Consumer for shared memory 2*/
-void actuator_task(void)
-{
-    printf("In Actuator Task\n");
-
-    int shm_2_fd, ret;
-    sem_t *actuator_sem;
-    actuator_shmem share_mem_act;
-    actuator_shmem *share_mem_act_ptr = &share_mem_act;
-    actuator_shmem *share_mem_ptr = NULL;
-
-    if((shm_2_fd = shm_open(ACTUATOR_SHMEM_DEF, O_RDWR, 0666)) < 0)
-    {
-        perror("SHM open");
-        exit(1);
-    }
-
-    if((share_mem_ptr = (actuator_shmem *)mmap(NULL, sizeof(actuator_shmem), PROT_READ, MAP_SHARED, shm_2_fd, 0)) < 0)
-    {
-        perror("mmap");
-        exit(1);
-    }
-
-    if((actuator_sem = sem_open(act_sem_name, 0, 0666, 0)) < 0)
-    {
-        perror("sem_open");
-        exit(1);
-    }
-
-    while(1)
-    {
-        sem_wait(actuator_sem);
-        memcpy((void*)(share_mem_ptr), (void*)&(share_mem_act_ptr[0]), sizeof(actuator_shmem));
-        printf("Acutator = %d\n", share_mem_act.actuator);
-        printf("Value = %d\n", share_mem_act.value);
-        if(share_mem_act.actuator == 0)
-        {
-            if((ret = gpio_set_value(LED, share_mem_act.value)) != 0)
-            {
-                perror("gpio_set_value");
-                exit(1);
-            }
-        }
-        else if(share_mem_act.actuator == 1)
-        {
-            if((ret = gpio_set_value(BUZ, share_mem_act.value)) != 0)
-            {
-                perror("gpio_set_value");
-                exit(1);
-            }
-        }
-        // usleep(1000000);
-        
-        // if((ret = gpio_set_value(LED, 0)) != 0)
-        // {
-        //     perror("gpio_set_OFF_value");
-        //     exit(1);
-        // }
-        // if((ret = gpio_set_value(BUZ, 0)) != 0)
-        // {
-        //     perror("gpio_set_OFF_value");
-        //     exit(1);
-        // }
-
-        // usleep(100000);
-        sem_post(actuator_sem);
-    }
-
-    if(munmap(share_mem_ptr, sizeof(actuator_shmem)) < 0)
-    {
-        perror("munmap");
-        exit(1);
-    }
-
-    sem_close(actuator_sem);
-
-    if(close(shm_2_fd) < 0)
-    {
-        perror("close");
-        exit(1);
-    }
-    // int i, ret = 0;
-    
-    // for(i=0;i<10;i++)
-    // {
-    //     if((ret = gpio_set_value(LED, 1)) != 0)
-    //     {
-    //         perror("gpio_set_ON_value");
-    //         exit(1);
-    //     }
-    //     if((ret = gpio_set_value(BUZ, 1)) != 0)
-    //     {
-    //         perror("gpio_set_ON_value");
-    //         exit(1);
-    //     }
-
-    //     usleep(1000000);
-        
-    //     if((ret = gpio_set_value(LED, 0)) != 0)
-    //     {
-    //         perror("gpio_set_OFF_value");
-    //         exit(1);
-    //     }
-    //     if((ret = gpio_set_value(BUZ, 0)) != 0)
-    //     {
-    //         perror("gpio_set_OFF_value");
-    //         exit(1);
-    //     }
-
-    //     usleep(100000);
-    //}
-
-}
-
 int main(void)
 {
     sem_t *main_sem;
@@ -479,6 +599,7 @@ int main(void)
 
     uart_init();
     tmp102_init();
+    veml_init();
     actuator_init();
 
 	ftruncate(shm_1_fd1, sizeof(sensor_shmem));
@@ -546,13 +667,13 @@ int main(void)
     // task_test();
 	
 	sem_unlink(tmp_sem_name);
-    sem_unlink(rx_sem_name);
     sem_unlink(act_sem_name);
 
 	shm_unlink(SENSOR_SHMEM_DEF);
     shm_unlink(ACTUATOR_SHMEM_DEF);
 
     uart_deinit();
+    
     // actuator_deinit();
 
     return 0;
