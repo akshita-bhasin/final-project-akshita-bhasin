@@ -80,7 +80,7 @@ static inline __s32 i2c_smbus_read_word_data(int file, __u8 command)
  int  power_saving_on = 0x0001; //PSM mode 1, enabled
 
  //register address, LSB, MSB
- int  power_on_command[3] = {0x00, 0x00, 0x08}; 
+ int  power_on_command[3] = {0x00, 0x00, 0x10}; 
  int psaveoff_command[3]  = {0x03, 0x00, 0x00};
  int psaveon_command[3]   = {0x03, 0x01, 0x00};
  int read_command         = 0x04;
@@ -183,7 +183,7 @@ int main(void)
     while(1)
     {
         value = i2c_smbus_read_word_data(i2c_fd,read_command);
-        printf("\n\rvalue %x",value);
+        printf("\n\rvalue %d = %x",value,value);
     }
     return 0;    
 }
