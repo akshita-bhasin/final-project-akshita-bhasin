@@ -298,8 +298,8 @@ void rx_uart(void)
             printf("Actuator value = %d\n", shmem_rx.value);
 
             // memcpy((void*)shmem_rx_ptr, (void*)(&share_mem_ptr[0]), sizeof(actuator_shmem));
-            shmem_rx.actuator = 1;
-            
+            shmem_rx.actuator = 0;
+
             if(shmem_rx.actuator == 0)
             {
                 if((ret = gpio_set_value(LED, shmem_rx.value)) != 0)
