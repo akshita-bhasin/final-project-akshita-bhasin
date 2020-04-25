@@ -296,6 +296,7 @@ void rx_uart(void)
             printf("Actuator value = %d\n", shmem_rx.value);
 
             memcpy((void*)share_mem_ptr, (void*)(&shmem_rx_ptr[0]), sizeof(actuator_shmem));
+            printf("TESt if it reaches here");
             sem_post(actuator_sem);
         // }
 
