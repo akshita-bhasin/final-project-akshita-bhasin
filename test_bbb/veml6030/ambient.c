@@ -31,12 +31,12 @@ https://github.com/shenki/linux-i2c-example/blob/master/i2c_example.c
 #define VEML_WRITE 0x90
 #define VEML_READ 0x91
 
+int i2c_fd;
 
 // function prototypes
-int read_single_byte(int file, unsigned char device_addr, int* val);
 int write_single_byte(int file, unsigned char device_addr, int command);
-int read_word(int file, unsigned char device_addr,int *val);
 int write_word(int file, unsigned char device_addr, int* command);
+
 
 
  __s32 i2c_smbus_access(int file, char read_write, __u8 command, int size, union i2c_smbus_data *data)
@@ -141,11 +141,8 @@ int write_word(int file, unsigned char device_addr, int* command)
 }
 
 
-int main(void)
-{
-    int i2c_fd;                         //file descriptor for i2c bus
-    int status;               
-    uint16_t value;
+int ambient_init(void)
+{ 
     if((i2c_fd = open(I2C_DEVICE,O_RDWR)) < 0){
         perror("Opening I2C file error");
         return -1;
@@ -155,22 +152,38 @@ int main(void)
         perror("I2C ioctl error");
         return -1;
     }
+    return 0;
 
+}
+
+int ambient_on(void)
+{
+    uint8_t status;
     //power on the sensor
     if((status = write_word(i2c_fd,VEML_ADDR,power_on_command)) != 0) 
     {
         perror("Could not power on the ambient light sensor");
         return -1;
     }
+    return status;
+ 
+}
 
-
-    //power save command on
+int ambient_power_save_on(void)
+{
+    uint8_t status;
     if((status = write_word(i2c_fd,VEML_ADDR,psaveon_command)) != 0)
     {
         perror("Could not set up power saving mode");
         return -1;
     }
+    return status;
 
+}
+
+int read_values(void)
+{
+    int value,status;
     printf("\n\rDevice setup to read values from the sensor");
 
     if((status = write_single_byte(i2c_fd,VEML_ADDR,read_command)) != 0)
@@ -178,12 +191,40 @@ int main(void)
         perror("Phase 1 write for read failed");
         return -1;
     }
-    
-    
+    value = i2c_smbus_read_word_data(i2c_fd,read_command);
+    return value;
+   
+}
+
+int main(void)
+{
+    int ret;
+    uint16_t sensor;
+    ret = ambient_init(); 
+    if(ret == -1)
+    {
+        perror("Error in initialization");
+    } 
+
+    ret = ambient_on();
+    if(ret == -1)
+    {
+        perror("Error switching on ambient");
+    }
+
+    ret = ambient_power_save_on();
+    if(ret == -1)
+    {
+        perror("Failed to set power saving mode");
+    }
+
     while(1)
     {
-        value = i2c_smbus_read_word_data(i2c_fd,read_command);
-        printf("\n\rvalue %d = %x",value,value);
+        sensor = read_values();
+        printf("\n\r sensor values %d",sensor);
     }
-    return 0;    
+
+    return 0;
+
+
 }
