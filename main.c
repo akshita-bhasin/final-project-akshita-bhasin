@@ -9,9 +9,7 @@
 
 #include "env_mon.h"
 
-#define TASKS 4
-
-int shared_memory_check(void);
+#define TASKS 5
 
 void signal_handler(int signum)
 {
@@ -472,11 +470,11 @@ int main(void)
 
     for(i=0; i<task_count; i++)
     {
-        if((fork_id = fork()) < 0)                     // error check
+        if((fork_id = fork()) < 0)
         {
             exit(EXIT_FAILURE);
         }
-        else if(fork_id == 0)                          // in child
+        else if(fork_id == 0)
         {
             (* task_names[i])();
 
