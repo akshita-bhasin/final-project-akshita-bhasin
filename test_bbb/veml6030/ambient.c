@@ -183,8 +183,8 @@ int main(void)
     
     while(1)
     {
-        lsb = i2c_smbus_read_word_data(i2c_fd, read_command);
-        msb = i2c_smbus_read_word_data(i2c_fd,read_command);
+        lsb = i2c_smbus_read_byte_data(i2c_fd, read_command);
+        msb = i2c_smbus_read_byte_data(i2c_fd,read_command);
 
         printf("\n\rlsb received %x   msb received %x",lsb,msb);
     }
