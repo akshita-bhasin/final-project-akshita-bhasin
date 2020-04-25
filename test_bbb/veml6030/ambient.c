@@ -146,7 +146,7 @@ int main(void)
     int i2c_fd;                         //file descriptor for i2c bus
     int status;
     uint8_t lsb, msb;                
-
+    uint16_t value;
     if((i2c_fd = open(I2C_DEVICE,O_RDWR)) < 0){
         perror("Opening I2C file error");
         return -1;
@@ -185,8 +185,9 @@ int main(void)
     {
         lsb = i2c_smbus_read_byte_data(i2c_fd, read_command);
         msb = i2c_smbus_read_byte_data(i2c_fd,read_command);
+        value = (msb << 8) | lsb);
+        printf("\n\rlsb received %d   msb received %d  value %d",lsb,msb,value);
 
-        printf("\n\rlsb received %x   msb received %x",lsb,msb);
     }
     return 0;    
 }
