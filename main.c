@@ -261,7 +261,7 @@ void rx_uart(void)
     actuator_shmem shmem_rx;
     actuator_shmem *shmem_rx_ptr = &shmem_rx;
     actuator_shmem * share_mem_ptr= NULL;
-    int count=1;
+    int ret, count=1;
 
     if((shm_2_fd = shm_open(ACTUATOR_SHMEM_DEF, O_RDWR, 0)) < 0)
     {
@@ -297,6 +297,23 @@ void rx_uart(void)
             printf("Actuator value = %d\n", shmem_rx.value);
 
             memcpy((void*)shmem_rx_ptr, (void*)(&share_mem_ptr[0]), sizeof(actuator_shmem));
+
+            if(shmem_rx.actuator == 0)
+            {
+                if((ret = gpio_set_value(LED, shmem_rx.value)) != 0)
+                {
+                    perror("gpio_set_value");
+                    exit(1);
+                }
+            }
+            else if(shmem_rx.actuator == 1)
+            {
+                if((ret = gpio_set_value(BUZ, shmem_rx.value)) != 0)
+                {
+                    perror("gpio_set_value");
+                    exit(1);
+                }
+            }
             // printf("Test if it reaches here\n");
             sem_post(actuator_sem);
         // }
