@@ -531,9 +531,6 @@ int main(void)
     {
         wait(&status);
         --task_count;
-
-        syslog(LOG_DEBUG, "[MAIN] Child with PID %ld exited with status %d\n", (long)wait_pid, status);
-        PDEBUG("[MAIN] Child with PID %ld exited with status %d\n", (long)wait_pid, status);
     }
 	
 	sem_unlink(tmp_sem_name);
