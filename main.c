@@ -297,7 +297,7 @@ void rx_uart(void)
             printf("Actuator = %d\n", shmem_rx.actuator);
             printf("Actuator value = %d\n", shmem_rx.value);
 
-            memcpy((void*)shmem_rx_ptr, (void*)(&share_mem_ptr[0]), sizeof(actuator_shmem));
+            // memcpy((void*)shmem_rx_ptr, (void*)(&share_mem_ptr[0]), sizeof(actuator_shmem));
 
             if(shmem_rx.actuator == 0)
             {
