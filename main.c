@@ -253,239 +253,203 @@ void tx_uart(void)
 }
 
 
-// /* Producer for shared memory 2*/
-// void rx_uart(void)
-// {
-//     printf("In UART Rx task\n");
-//     int shm_2_fd;
-//     sem_t *actuator_sem;
-//     actuator_shmem shmem_rx;
-//     actuator_shmem *shmem_rx_ptr = &shmem_rx;
-//     actuator_shmem * share_mem_ptr= NULL;
-//     int ret, count=1;
-
-//     if((shm_2_fd = shm_open(ACTUATOR_SHMEM_DEF, O_RDWR, 0)) < 0)
-//     {
-//         perror("shm_open");
-//         exit(1);
-//     }
-
-//     if((share_mem_ptr = (actuator_shmem *)mmap(NULL, sizeof(actuator_shmem), PROT_READ, MAP_SHARED, shm_2_fd, 0)) < 0)
-//     {
-//         perror("mmap");
-//         exit(1);
-//     }
-
-//     actuator_sem = sem_open(act_sem_name, 0, 0600, 0);
-
-//     // while(1)
-//     // {
-//         // ret = sem_wait(actuator_sem);
-        
-//         // if (ret == 0)
-//         // {
-//             fcntl(uart_fd1, F_SETFL, 0);
-
-//             printf("Receive characters\n");
-
-//             if((count = read(uart_fd1, (void *)shmem_rx_ptr, sizeof(actuator_shmem))) < 0)
-//             {
-//                 perror("read\n");
-//                 exit(1);
-//             }
-
-//             printf("Actuator = %d\n", shmem_rx.actuator);
-//             printf("Actuator value = %d\n", shmem_rx.value);
-
-//             memcpy((void*)shmem_rx_ptr, (void*)(&share_mem_ptr[0]), sizeof(actuator_shmem));
-
-//             if(shmem_rx.actuator == 0)
-//             {
-//                 if((ret = gpio_set_value(LED, shmem_rx.value)) != 0)
-//                 {
-//                     perror("gpio_set_value");
-//                     exit(1);
-//                 }
-//             }
-//             else if(shmem_rx.actuator == 1)
-//             {
-//                 if((ret = gpio_set_value(BUZ, shmem_rx.value)) != 0)
-//                 {
-//                     perror("gpio_set_value");
-//                     exit(1);
-//                 }
-//             }
-//             // printf("Test if it reaches here\n");
-//             sem_post(actuator_sem);
-//         // }
-
-//         /* Wait for humidty and add sleep */
-//     // }
-
-//     if(munmap(share_mem_ptr, sizeof(actuator_shmem)) < 0)
-//     {
-//         perror("munmap");
-//         exit(1);
-//     }
-
-//     if(close(shm_2_fd) < 0)
-//     {
-//         perror("close");
-//         exit(1);
-//     }
-
-//     printf("Testing task working\n");
-//     sem_close(actuator_sem);
-// }
-
-// /* Consumer for shared memory 2*/
-// void actuator_task(void)
-// {
-//     printf("In Actuator Task\n");
-
-//     int shm_2_fd, ret;
-//     sem_t *actuator_sem;
-//     actuator_shmem share_mem_act;
-//     actuator_shmem *share_mem_act_ptr = &share_mem_act;
-//     actuator_shmem *share_mem_ptr = NULL;
-
-//     if((shm_2_fd = shm_open(ACTUATOR_SHMEM_DEF, O_RDWR, 0666)) < 0)
-//     {
-//         perror("SHM open");
-//         exit(1);
-//     }
-
-//     if((share_mem_ptr = (actuator_shmem *)mmap(NULL, sizeof(actuator_shmem), PROT_READ, MAP_SHARED, shm_2_fd, 0)) < 0)
-//     {
-//         perror("mmap");
-//         exit(1);
-//     }
-
-//     if((actuator_sem = sem_open(act_sem_name, 0, 0666, 0)) < 0)
-//     {
-//         perror("sem_open");
-//         exit(1);
-//     }
-
-//     while(1)
-//     {
-//         sem_wait(actuator_sem);
-//         memcpy((void*)(share_mem_ptr), (void*)&(share_mem_act_ptr[0]), sizeof(actuator_shmem));
-//         printf("Acutator = %d\n", share_mem_act.actuator);
-//         printf("Value = %d\n", share_mem_act.value);
-//         if(share_mem_act.actuator == 0)
-//         {
-//             if((ret = gpio_set_value(LED, share_mem_act.value)) != 0)
-//             {
-//                 perror("gpio_set_value");
-//                 exit(1);
-//             }
-//         }
-//         else if(share_mem_act.actuator == 1)
-//         {
-//             if((ret = gpio_set_value(BUZ, share_mem_act.value)) != 0)
-//             {
-//                 perror("gpio_set_value");
-//                 exit(1);
-//             }
-//         }
-//         // usleep(1000000);
-        
-//         // if((ret = gpio_set_value(LED, 0)) != 0)
-//         // {
-//         //     perror("gpio_set_OFF_value");
-//         //     exit(1);
-//         // }
-//         // if((ret = gpio_set_value(BUZ, 0)) != 0)
-//         // {
-//         //     perror("gpio_set_OFF_value");
-//         //     exit(1);
-//         // }
-
-//         // usleep(100000);
-//         sem_post(actuator_sem);
-//     }
-
-//     if(munmap(share_mem_ptr, sizeof(actuator_shmem)) < 0)
-//     {
-//         perror("munmap");
-//         exit(1);
-//     }
-
-//     sem_close(actuator_sem);
-
-//     if(close(shm_2_fd) < 0)
-//     {
-//         perror("close");
-//         exit(1);
-//     }
-//     // int i, ret = 0;
-    
-//     // for(i=0;i<10;i++)
-//     // {
-//     //     if((ret = gpio_set_value(LED, 1)) != 0)
-//     //     {
-//     //         perror("gpio_set_ON_value");
-//     //         exit(1);
-//     //     }
-//     //     if((ret = gpio_set_value(BUZ, 1)) != 0)
-//     //     {
-//     //         perror("gpio_set_ON_value");
-//     //         exit(1);
-//     //     }
-
-//     //     usleep(1000000);
-        
-//     //     if((ret = gpio_set_value(LED, 0)) != 0)
-//     //     {
-//     //         perror("gpio_set_OFF_value");
-//     //         exit(1);
-//     //     }
-//     //     if((ret = gpio_set_value(BUZ, 0)) != 0)
-//     //     {
-//     //         perror("gpio_set_OFF_value");
-//     //         exit(1);
-//     //     }
-
-//     //     usleep(100000);
-//     //}
-
-// }
-
+/* Producer for shared memory 2*/
 void rx_uart(void)
 {
-    
-    int count, ret;
-    actuator_shmem shmem_rx, *shmem_rx_ptr=&shmem_rx;
-    fcntl(uart_fd1, F_SETFL, 0);
+    printf("In UART Rx task\n");
+    int shm_2_fd;
+    sem_t *actuator_sem;
+    actuator_shmem shmem_rx;
+    actuator_shmem *shmem_rx_ptr = &shmem_rx;
+    actuator_shmem * share_mem_ptr= NULL;
+    int ret, count=1;
 
-    printf("Receive characters\n");
-
-    if((count = read(uart_fd1, (void *)shmem_rx_ptr, sizeof(actuator_shmem))) < 0)
+    if((shm_2_fd = shm_open(ACTUATOR_SHMEM_DEF, O_RDWR, 0)) < 0)
     {
-        perror("read\n");
+        perror("shm_open");
         exit(1);
     }
 
-    printf("Actuator = %d\n", shmem_rx.actuator);
-    printf("Actuator value = %d\n", shmem_rx.value);
+    if((share_mem_ptr = (actuator_shmem *)mmap(NULL, sizeof(actuator_shmem), PROT_READ, MAP_SHARED, shm_2_fd, 0)) < 0)
+    {
+        perror("mmap");
+        exit(1);
+    }
 
-    if(shmem_rx.actuator == 0)
+    actuator_sem = sem_open(act_sem_name, 0, 0600, 0);
+
+    // while(1)
+    // {
+        // ret = sem_wait(actuator_sem);
+        
+        // if (ret == 0)
+        // {
+            fcntl(uart_fd1, F_SETFL, 0);
+
+            printf("Receive characters\n");
+
+            if((count = read(uart_fd1, (void *)shmem_rx_ptr, sizeof(actuator_shmem))) < 0)
+            {
+                perror("read\n");
+                exit(1);
+            }
+
+            printf("Actuator = %d\n", shmem_rx.actuator);
+            printf("Actuator value = %d\n", shmem_rx.value);
+
+            memcpy((void*)shmem_rx_ptr, (void*)(&share_mem_ptr[0]), sizeof(actuator_shmem));
+
+            if(shmem_rx.actuator == 0)
+            {
+                if((ret = gpio_set_value(LED, shmem_rx.value)) != 0)
+                {
+                    perror("gpio_set_value");
+                    exit(1);
+                }
+            }
+            else if(shmem_rx.actuator == 1)
+            {
+                if((ret = gpio_set_value(BUZ, shmem_rx.value)) != 0)
+                {
+                    perror("gpio_set_value");
+                    exit(1);
+                }
+            }
+            // printf("Test if it reaches here\n");
+            sem_post(actuator_sem);
+        // }
+
+        /* Wait for humidty and add sleep */
+    // }
+
+    if(munmap(share_mem_ptr, sizeof(actuator_shmem)) < 0)
     {
-        if((ret = gpio_set_value(LED, shmem_rx.value)) != 0)
-        {
-            perror("gpio_set_value");
-            exit(1);
-        }
+        perror("munmap");
+        exit(1);
     }
-    else if(shmem_rx.actuator == 1)
+
+    if(close(shm_2_fd) < 0)
     {
-        if((ret = gpio_set_value(BUZ, shmem_rx.value)) != 0)
-        {
-            perror("gpio_set_value");
-            exit(1);
-        }
+        perror("close");
+        exit(1);
     }
+
+    printf("Testing task working\n");
+    sem_close(actuator_sem);
+}
+
+/* Consumer for shared memory 2*/
+void actuator_task(void)
+{
+    printf("In Actuator Task\n");
+
+    int shm_2_fd, ret;
+    sem_t *actuator_sem;
+    actuator_shmem share_mem_act;
+    actuator_shmem *share_mem_act_ptr = &share_mem_act;
+    actuator_shmem *share_mem_ptr = NULL;
+
+    if((shm_2_fd = shm_open(ACTUATOR_SHMEM_DEF, O_RDWR, 0666)) < 0)
+    {
+        perror("SHM open");
+        exit(1);
+    }
+
+    if((share_mem_ptr = (actuator_shmem *)mmap(NULL, sizeof(actuator_shmem), PROT_READ, MAP_SHARED, shm_2_fd, 0)) < 0)
+    {
+        perror("mmap");
+        exit(1);
+    }
+
+    if((actuator_sem = sem_open(act_sem_name, 0, 0666, 0)) < 0)
+    {
+        perror("sem_open");
+        exit(1);
+    }
+
+    while(1)
+    {
+        sem_wait(actuator_sem);
+        memcpy((void*)(share_mem_ptr), (void*)&(share_mem_act_ptr[0]), sizeof(actuator_shmem));
+        printf("Acutator = %d\n", share_mem_act.actuator);
+        printf("Value = %d\n", share_mem_act.value);
+        if(share_mem_act.actuator == 0)
+        {
+            if((ret = gpio_set_value(LED, share_mem_act.value)) != 0)
+            {
+                perror("gpio_set_value");
+                exit(1);
+            }
+        }
+        else if(share_mem_act.actuator == 1)
+        {
+            if((ret = gpio_set_value(BUZ, share_mem_act.value)) != 0)
+            {
+                perror("gpio_set_value");
+                exit(1);
+            }
+        }
+        // usleep(1000000);
+        
+        // if((ret = gpio_set_value(LED, 0)) != 0)
+        // {
+        //     perror("gpio_set_OFF_value");
+        //     exit(1);
+        // }
+        // if((ret = gpio_set_value(BUZ, 0)) != 0)
+        // {
+        //     perror("gpio_set_OFF_value");
+        //     exit(1);
+        // }
+
+        // usleep(100000);
+        sem_post(actuator_sem);
+    }
+
+    if(munmap(share_mem_ptr, sizeof(actuator_shmem)) < 0)
+    {
+        perror("munmap");
+        exit(1);
+    }
+
+    sem_close(actuator_sem);
+
+    if(close(shm_2_fd) < 0)
+    {
+        perror("close");
+        exit(1);
+    }
+    // int i, ret = 0;
+    
+    // for(i=0;i<10;i++)
+    // {
+    //     if((ret = gpio_set_value(LED, 1)) != 0)
+    //     {
+    //         perror("gpio_set_ON_value");
+    //         exit(1);
+    //     }
+    //     if((ret = gpio_set_value(BUZ, 1)) != 0)
+    //     {
+    //         perror("gpio_set_ON_value");
+    //         exit(1);
+    //     }
+
+    //     usleep(1000000);
+        
+    //     if((ret = gpio_set_value(LED, 0)) != 0)
+    //     {
+    //         perror("gpio_set_OFF_value");
+    //         exit(1);
+    //     }
+    //     if((ret = gpio_set_value(BUZ, 0)) != 0)
+    //     {
+    //         perror("gpio_set_OFF_value");
+    //         exit(1);
+    //     }
+
+    //     usleep(100000);
+    //}
+
 }
 
 int main(void)
@@ -550,20 +514,20 @@ int main(void)
 		exit(0);
 	}
 
-    // printf("Outside rx_uart\n");
-    // fork_id = fork();
-    // printf("fork_id after rx_uart: %d\n", fork_id);
+    printf("Outside rx_uart\n");
+    fork_id = fork();
+    printf("fork_id after rx_uart: %d\n", fork_id);
 
-	// if(fork_id < 0)
-	// {
-	// 	exit(1);
-	// }
+	if(fork_id < 0)
+	{
+		exit(1);
+	}
 
-	// if(fork_id == 0)
-	// {
-    //     actuator_task();
-	// 	exit(0);
-	// }
+	if(fork_id == 0)
+	{
+        actuator_task();
+		exit(0);
+	}
 
     // fork_id = fork();
 
@@ -587,7 +551,7 @@ int main(void)
     shm_unlink(ACTUATOR_SHMEM_DEF);
 
     uart_deinit();
-    actuator_deinit();
+    // actuator_deinit();
 
     return 0;
 
