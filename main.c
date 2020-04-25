@@ -4,6 +4,7 @@
 *             http://www.cse.psu.edu/~deh25/cmpsc473/notes/OSC/Processes/shm-posix-consumer.c
 *             http://man7.org/training/download/posix_shm_slides.pdf
 *             http://logan.tw/posts/2018/01/07/posix-shared-memory/
+*             http://www.cse.cuhk.edu.hk/~ericlo/teaching/os/lab/7-IPC2/sync-pro.html
 *             
 */
 
@@ -303,15 +304,15 @@ void rx_uart(void)
         /* Wait for humidty and add sleep */
     // }
 
-    // if(close(shm_2_fd) < 0)
-    // {
-    //     perror("close");
-    //     exit(1);
-    // }
-
     if(munmap(share_mem_ptr, sizeof(actuator_shmem)) < 0)
     {
         perror("munmap");
+        exit(1);
+    }
+
+    if(close(shm_2_fd) < 0)
+    {
+        perror("close");
         exit(1);
     }
 
@@ -330,7 +331,7 @@ void actuator_task(void)
     actuator_shmem *share_mem_act_ptr = &share_mem_act;
     actuator_shmem *share_mem_ptr = NULL;
 
-    if((shm_2_fd = shm_open(ACTUATOR_SHMEM_DEF, O_CREAT | O_RDWR, 0)) < 0)
+    if((shm_2_fd = shm_open(ACTUATOR_SHMEM_DEF, O_RDWR, 0666)) < 0)
     {
         perror("SHM open");
         exit(1);
