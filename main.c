@@ -514,6 +514,8 @@ void rx_uart(void)
 
     actuator_sem = sem_open(act_sem_name, 0, 0600, 0);
 
+    sem_post(actuator_sem);
+
     while(count!=0)
     {
         count = 0;
