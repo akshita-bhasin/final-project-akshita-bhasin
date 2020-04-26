@@ -22,7 +22,6 @@ Leveraged Code : https://beej.us/guide/bgnet/html/
 #include <signal.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
-#include "../../env_mon.h"
 
 
 #define PORT "9000"
@@ -30,7 +29,6 @@ Leveraged Code : https://beej.us/guide/bgnet/html/
 #define BUFFER_SIZE 20
 #define NR_OPEN 1024
 
-// extern sensor_shmem *buf;
 
 int new_fd, sockfd;
 volatile int signal_set = 0;
@@ -72,8 +70,6 @@ int main(int argc, char* argv[])
 
     int addr_status;
     int bindfd, listenfd, setsockfd;
-
-    buff = (char *)malloc(1000);
     
     int daemon_mode = 0;
     int option = 1;
@@ -169,13 +165,10 @@ int main(int argc, char* argv[])
             syslog(LOG_DEBUG,"accept");
             return -1;   
         }
-        
         //ip_address
         syslog(LOG_INFO,"Accepted Connection from %s", inet_ntoa(their_addr.sin_addr));
 
-        send(new_fd, "HELLO", 6, 0);   // server to client
-        
-            
+        send(new_fd, "HELLO", 6, 0);   // server to client    
     
         syslog(LOG_INFO,"Closed Connection from %s", inet_ntoa(their_addr.sin_addr));
    }

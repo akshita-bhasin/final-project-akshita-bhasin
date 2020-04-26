@@ -47,16 +47,20 @@ int main(int argc, char *argv[])
 	    exit(1);
 	}
 
+	while(1)
+	{
+
 	memset(&hints, 0, sizeof hints);
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 
+	
 	if ((rv = getaddrinfo(argv[1], PORT, &hints, &servinfo)) != 0) {
 		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
 		return 1;
 	}
-	
 
+	
 	
 	// loop through all the results and connect to the first we can
 	for(p = servinfo; p != NULL; p = p->ai_next) {
@@ -112,7 +116,7 @@ int main(int argc, char *argv[])
 		log_write(timestamp);
 		log_write("\n");
 		log_complete();
-	
+	}
 
 	close(sockfd);
 
