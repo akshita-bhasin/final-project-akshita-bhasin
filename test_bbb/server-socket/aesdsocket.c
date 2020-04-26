@@ -72,6 +72,8 @@ int main(int argc, char* argv[])
 
     int addr_status;
     int bindfd, listenfd, setsockfd;
+
+    buff = (char *)malloc(1000);
     
     int daemon_mode = 0;
     int option = 1;
@@ -167,6 +169,7 @@ int main(int argc, char* argv[])
             syslog(LOG_DEBUG,"accept");
             return -1;   
         }
+        
         //ip_address
         syslog(LOG_INFO,"Accepted Connection from %s", inet_ntoa(their_addr.sin_addr));
 
