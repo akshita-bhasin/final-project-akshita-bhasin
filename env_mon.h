@@ -25,6 +25,7 @@
 #include <sys/mman.h>
 #include "inc/led.h"
 #include <sys/shm.h>
+#include <time.h>
 
 #define SLAVE_ADDR 0x48
 

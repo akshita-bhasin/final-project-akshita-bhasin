@@ -36,9 +36,9 @@ void *get_in_addr(struct sockaddr *sa)
 int main(int argc, char *argv[])
 {
 	openlog(NULL, LOG_PERROR, LOG_USER);
-	// int status;
-	int sockfd, numbytes, i, loop_index = 0;  
-	uint8_t buf[MAXDATASIZE];
+	int status;
+	int sockfd, numbytes;  
+	char buf[MAXDATASIZE];
 	struct addrinfo hints, *servinfo, *p;
 	int rv;
 	char s[INET6_ADDRSTRLEN];
@@ -90,37 +90,24 @@ int main(int argc, char *argv[])
 	printf("client: connecting to %s\n", s);
 
 	freeaddrinfo(servinfo); // all done with this structure
-	while(loop_index !=2)
-	{
-		if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) {
-			perror("recv");
-			exit(1);
-		}
+	
+	if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) {
+		perror("recv");
+		exit(1);
+	}
 
 		buf[numbytes] = '\0';
-		for(i=0; i< numbytes; i++)
-		{
-			printf("client: received '%u'\n",buf[i]);
-		}
-		// status = log_setup();
-		// if(status == -1)
-		// {
-		// 	perror("Error setting up log");
-		// 	return -1;
-		// }
-		// log_write(buf);
 		
-		// https://www.geeksforgeeks.org/time-h-header-file-in-c-with-examples/
-		// struct tm* ptr;
-		// time_t t;
-		// t = time(NULL);
-		// ptr = localtime(&t);
-		// char *timestamp = asctime(ptr);
-	
-		// log_write(timestamp);
-		// log_write("\n");
-		// log_complete();
-		loop_index++;
+		 status = log_setup();
+		 if(status == -1)
+		 {
+		 	perror("Error setting up log");
+		 	return -1;
+		 }
+		 log_write(buf);
+		 log_write("\n");
+		 log_complete();
+		
 	}
 	close(sockfd);
 

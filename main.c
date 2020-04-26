@@ -700,8 +700,20 @@ int sock_task(void)
     }
     //ip_address
     syslog(LOG_INFO,"Accepted Connection from %s", inet_ntoa(their_addr.sin_addr));
-    send(new_fd, tmp_buffer, 5, 0);   // server to client
-    send(new_fd, lux_buffer, 5, 0);
+    char logstring[43];
+    
+	//https://www.geeksforgeeks.org/time-h-header-file-in-c-with-examples/
+	struct tm* ptr;
+	time_t t;
+	t = time(NULL);
+	ptr = localtime(&t);
+	char *timestamp = asctime(ptr);
+    for(i = 0; i < 5; i++)
+    {
+        sprintf(logstring,"Temp : %u Lux : %u %s",tmp_buffer[i],lux_buffer[i],timestamp);
+        send(new_fd,logstring,43,0);    
+    }
+    
     for(i=0; i<sizeof(lux_buffer); i++)
     {
         syslog(LOG_DEBUG, "Buffer contents: %u", lux_buffer[i]);
