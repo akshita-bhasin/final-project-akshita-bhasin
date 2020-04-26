@@ -702,34 +702,25 @@ int sock_init(void)
 
 int sock_task(void)
 {
-    while(1)
-    {
-        addr_size = sizeof their_addr;
-        new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &addr_size); //accept an incoming connection
-        if(new_fd == -1)
-        {
-            syslog(LOG_DEBUG,"accept");
-            return -1;   
-        }
-        //ip_address
-        syslog(LOG_INFO,"Accepted Connection from %s", inet_ntoa(their_addr.sin_addr));
-
-        
-       
-        send(new_fd, "HELLO", 6, 0);   // server to client
-        
-            
     
-        syslog(LOG_INFO,"Closed Connection from %s", inet_ntoa(their_addr.sin_addr));
-        return 0;
-   }
-
-
-
-
+    addr_size = sizeof their_addr;
+    new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &addr_size); //accept an incoming connection
+    if(new_fd == -1)
+    {
+        syslog(LOG_DEBUG,"accept");
+        return -1;   
+    }
+    //ip_address
+    syslog(LOG_INFO,"Accepted Connection from %s", inet_ntoa(their_addr.sin_addr));
+    send(new_fd, "HELLO", 6, 0);   // server to client
+    syslog(LOG_INFO,"Closed Connection from %s", inet_ntoa(their_addr.sin_addr));
+    return 0;
 }
+
+
 int main(void)
 {
+    int while_loop = 0;
     openlog(NULL, LOG_CONS | LOG_PERROR, LOG_USER);
 
     int connect_status = sock_init();
@@ -817,6 +808,13 @@ int main(void)
             rx_uart();
             exit(0);
         }
+        if(while_loop == 5)
+        {
+            sock_task();
+            while_loop = 0;
+        }
+        while_loop++;
+
     }
 
     
