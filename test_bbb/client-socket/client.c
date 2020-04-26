@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
 {
 	openlog(NULL, LOG_PERROR, LOG_USER);
 	// int status;
-	int sockfd, numbytes, i;  
+	int sockfd, numbytes, i, loop_index = 0;  
 	uint8_t buf[MAXDATASIZE];
 	struct addrinfo hints, *servinfo, *p;
 	int rv;
@@ -90,7 +90,8 @@ int main(int argc, char *argv[])
 	printf("client: connecting to %s\n", s);
 
 	freeaddrinfo(servinfo); // all done with this structure
-	
+	while(loop_index !=2)
+	{
 		if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) {
 			perror("recv");
 			exit(1);
@@ -119,8 +120,8 @@ int main(int argc, char *argv[])
 		// log_write(timestamp);
 		// log_write("\n");
 		// log_complete();
-	
-
+		loop_index++;
+	}
 	close(sockfd);
 
 	return 0;
