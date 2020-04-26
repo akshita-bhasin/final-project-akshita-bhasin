@@ -639,8 +639,8 @@ int main(void)
     close(shm_2_fd1);
 
 
-    while(1)
-    {
+    // while(1)
+    // {
         tmp102_task();
         fork_id = fork();
 
@@ -681,7 +681,7 @@ int main(void)
             rx_uart();
             exit(0);
         }
-    }
+    // }
 
     // printf("Outside rx_uart\n");
     // fork_id = fork();
