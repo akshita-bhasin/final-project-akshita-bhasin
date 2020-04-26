@@ -339,10 +339,10 @@ void tmp102_task(void)
 
     memcpy((void*)(&share_mem_ptr[0]), (void*)share_mem_temp_ptr, sizeof(sensor_shmem));
     
-    // sem_post(buffer_sem);
-    // sem_wait(buffer_sem);
-    // memcpy((void*)(&buf[buffer_count++]), (void *) share_mem_temp_ptr, sizeof(sensor_shmem));
-    // sem_post(buffer_sem);
+    sem_post(buffer_sem);
+    sem_wait(buffer_sem);
+    memcpy((void*)(&buf[buffer_count++]), (void *) share_mem_temp_ptr, sizeof(sensor_shmem));
+    sem_post(buffer_sem);
 
     sem_post(temperature_sem);
 
@@ -405,9 +405,9 @@ void ambient_task(void)
 
         memcpy((void*)(&share_mem_ptr[1]), (void*)share_mem_veml_ptr, sizeof(sensor_shmem));
 
-        // sem_wait(buffer_sem);
-        // memcpy((void*)(&buf[buffer_count++]), (void *) share_mem_veml_ptr, sizeof(sensor_shmem));
-        // sem_post(buffer_sem);
+        sem_wait(buffer_sem);
+        memcpy((void*)(&buf[buffer_count++]), (void *) share_mem_veml_ptr, sizeof(sensor_shmem));
+        sem_post(buffer_sem);
 
         sem_post(ambient_sem);
 
