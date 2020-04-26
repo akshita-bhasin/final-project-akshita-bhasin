@@ -533,8 +533,8 @@ void rx_uart(void)
             print_act = count;
             printf("Count: %d, act_count :%d\n", count, print_act);
             
-            // while(print_act > 0)
-            // {
+            while(print_act > 0)
+            {
                 printf("Actuator %d = %d\n", count-print_act, shmem_rx_ptr[count - print_act].actuator);
                 printf("Actuator value = %d\n", shmem_rx_ptr[count - print_act].value);
 
@@ -559,10 +559,10 @@ void rx_uart(void)
                     }
                 }
                 print_act--;
-    }
-            // };
-            // printf("Test if it reaches here\n");
+            }
+            printf("Test if it reaches here\n");
             sem_post(actuator_sem);
+    }
         // }
 
         /* Wait for humidty and add sleep */
