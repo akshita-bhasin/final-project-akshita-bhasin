@@ -12,21 +12,7 @@
 
 #define TASKS 5 //changed here
 
-
-int new_fd, sockfd;
-volatile int signal_set = 0;
-
-int addr_status;
-int bindfd, listenfd, setsockfd;
-int option = 1;
-
-struct addrinfo hints;
-struct addrinfo *res; //point to results
-struct sockaddr_in their_addr;
-socklen_t addr_size;
-
-int shared_memory_check(void);
-
+int tmp_count = 0, lux_count = 0;
 void signal_handler(int signum)
 {
     if((signum == SIGINT) || (signum == SIGTERM))
@@ -194,9 +180,6 @@ int write_single_byte(int file, unsigned char device_addr, int command)
 
     return 0;    
 }
-
-
-
 
 int write_word(int file, unsigned char device_addr, int* command)
 {
@@ -366,7 +349,9 @@ void tmp102_task(void)
     
     // sem_post(buffer_sem);
     // sem_wait(buffer_sem);
-    // sprintf(buff, "Temperature is %d", (int)c);
+    tmp_buffer[tmp_count++] = share_mem_ptr[0].value;
+    if(tmp_count == 5)
+        tmp_count = 0;
     // sem_post(buffer_sem);
 
     sem_post(temperature_sem);
@@ -429,7 +414,11 @@ void ambient_task(void)
         share_mem_veml_ptr->value = sensor;
 
         memcpy((void*)(&share_mem_ptr[1]), (void*)share_mem_veml_ptr, sizeof(sensor_shmem));
-
+        
+        lux_buffer[lux_count++] = share_mem_ptr[1].value;
+        if(lux_count == 5)
+            lux_count = 0;
+        
         // sem_wait(buffer_sem);
         // sprintf(buff, "Light sensor value is %d", sensor);
         // sem_post(buffer_sem);
@@ -510,9 +499,8 @@ void tx_uart(void)
                 exit(1);
             }
         }
-        // sem_post(temperature_sem);
+        sem_post(temperature_sem);
 
-        /* Wait for humidty and add sleep */
     }
 
     if(close(shm_1_fd) < 0)
@@ -712,7 +700,8 @@ int sock_task(void)
     }
     //ip_address
     syslog(LOG_INFO,"Accepted Connection from %s", inet_ntoa(their_addr.sin_addr));
-    send(new_fd, "HELLO", 6, 0);   // server to client
+    send(new_fd, tmp_buffer, 5, 0);   // server to client
+    send(new_fd, lux_buffer, 5, 0);
     syslog(LOG_INFO,"Closed Connection from %s", inet_ntoa(their_addr.sin_addr));
     return 0;
 }
