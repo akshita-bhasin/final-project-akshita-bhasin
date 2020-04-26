@@ -15,7 +15,7 @@ ifeq ($(LDFLAGS),)
 	LDFLAGS := -pthread -lrt
 endif
 
-all: environmental_monitoring shtc3 server client shared_mem ambient
+all: environmental_monitoring server client shared_mem ambient
 
 environmental_monitoring: main.o led.o
 	@echo "$(CC) compilation"
@@ -29,9 +29,6 @@ main.o: main.c inc/led.h
 
 led.o: src/led.c inc/led.h
 	@$(CC) $(CFLAGS) $(INCLUDES) -c src/led.c
-
-shtc3: test_bbb/SHTC3.c
-	@$(CC) $(CFLAGS) $(INCLUDES) test_bbb/SHTC3.c -o shtc3
 
 server: test_bbb/server-socket/aesdsocket.c
 	@echo "$(CC) compilation"
@@ -61,4 +58,4 @@ ambient: test_bbb/veml6030/ambient.c
 	@$(CC) $(CFLAGS) $(INCLUDES) test_bbb/veml6030/ambient.c -o ambient
 	@echo "Successful compilation!"
 clean:
-	rm -rf *.o environmental_monitoring shtc3 server client shared_mem ambient
+	rm -rf *.o environmental_monitoring server client shared_mem ambient

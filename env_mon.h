@@ -80,21 +80,22 @@ typedef struct {
      uint8_t value;
 } actuator_shmem;
 
+char *buff = NULL;
 
- int power_on_config = 0x800; //MSB = 0x8, LSB 0x00
- int power_saving_off = 0x0000; //PSM mode 1, disabled
- int  power_saving_on = 0x0001; //PSM mode 1, enabled
+int power_on_config = 0x800; //MSB = 0x8, LSB 0x00
+int power_saving_off = 0x0000; //PSM mode 1, disabled
+int  power_saving_on = 0x0001; //PSM mode 1, enabled
 
- //register address, LSB, MSB
- int  power_on_command[3] = {0x00, 0x00, 0x10}; 
- int psaveoff_command[3]  = {0x03, 0x00, 0x00};
- int psaveon_command[3]   = {0x03, 0x01, 0x00};
- int read_command         = 0x04;
+//register address, LSB, MSB
+int  power_on_command[3] = {0x00, 0x00, 0x10}; 
+int psaveoff_command[3]  = {0x03, 0x00, 0x00};
+int psaveon_command[3]   = {0x03, 0x01, 0x00};
+int read_command         = 0x04;
 
 
 char* tmp_sem_name = "tmp102_sem";
 char* act_sem_name = "actuat_sem";
-char* rx_sem_name = "uart_rx_sem";
+char* buf_sem_name = "buff_w_sem";
 char* amb_sem_name = "ambient_sem";
 
 // function prototypes

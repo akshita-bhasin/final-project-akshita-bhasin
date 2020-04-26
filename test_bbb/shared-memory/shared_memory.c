@@ -1,3 +1,5 @@
+/* Author: Akshita Bhasin */
+
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>

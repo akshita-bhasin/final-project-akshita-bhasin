@@ -333,7 +333,7 @@ void tmp102_task(void)
     }
 
     int shm_1_fd;
-    sem_t *temperature_sem;
+    sem_t *temperature_sem, *buffer_sem;
     sensor_shmem share_mem_temp = {1, c};
     sensor_shmem *share_mem_temp_ptr = &share_mem_temp;
     sensor_shmem *share_mem_ptr = NULL;
@@ -356,7 +356,18 @@ void tmp102_task(void)
         exit(1);
     }
 
+    if((buffer_sem = sem_open(buf_sem_name, 0, 0666, 0)) < 0)
+    {
+        perror("sem_open");
+        exit(1);
+    }
+
     memcpy((void*)(&share_mem_ptr[0]), (void*)share_mem_temp_ptr, sizeof(sensor_shmem));
+    
+    // sem_post(buffer_sem);
+    // sem_wait(buffer_sem);
+    // sprintf(buff, "Temperature is %d", (int)c);
+    // sem_post(buffer_sem);
 
     sem_post(temperature_sem);
 
@@ -381,7 +392,7 @@ void ambient_task(void)
     printf("In LUX Task");
 
     int shm_1_fd;
-    sem_t *ambient_sem;
+    sem_t *ambient_sem, *buffer_sem;
     sensor_shmem share_mem_veml = {0, 0};
     sensor_shmem *share_mem_veml_ptr = &share_mem_veml;
     sensor_shmem *share_mem_ptr = NULL;
@@ -405,6 +416,11 @@ void ambient_task(void)
         exit(1);
     }
 
+    if((buffer_sem = sem_open(buf_sem_name, 0, 0666, 0)) < 0)
+    {
+        perror("sem_open");
+        exit(1);
+    }
     // while(1)
     // {
         sensor = read_values();
@@ -413,6 +429,10 @@ void ambient_task(void)
         share_mem_veml_ptr->value = sensor;
 
         memcpy((void*)(&share_mem_ptr[1]), (void*)share_mem_veml_ptr, sizeof(sensor_shmem));
+
+        // sem_wait(buffer_sem);
+        // sprintf(buff, "Light sensor value is %d", sensor);
+        // sem_post(buffer_sem);
 
         sem_post(ambient_sem);
 
@@ -537,17 +557,20 @@ void rx_uart(void)
 
     actuator_sem = sem_open(act_sem_name, 0, 0600, 0);
 
-    // while(1)
-    // {
-        // ret = sem_wait(actuator_sem);
+    sem_post(actuator_sem);
+
+    while(count!=0)
+    {
+        count = 0;
+        ret = sem_wait(actuator_sem);
         
-        // if (ret == 0)
-        // {
+        if (ret == 0)
+        {
             fcntl(uart_fd1, F_SETFL, 0);
 
             printf("Receive characters\n");
 
-            if((count = read(uart_fd1, (void *)shmem_rx_ptr, sizeof(actuator_shmem))) < 0)
+            if((count = read(uart_fd1, &(shmem_rx), sizeof(actuator_shmem))) < 0)
             {
                 perror("read\n");
                 exit(1);
@@ -555,21 +578,15 @@ void rx_uart(void)
 
             print_act = count;
             printf("Count: %d, act_count :%d\n", count, print_act);
-
-            printf("Actuator %d = %d\n", count-count, shmem_rx_ptr[count - count].actuator);
-            printf("Actuator value = %d\n", shmem_rx_ptr[count - count].value);
-
-            printf("Actuator %d = %d\n", count-count+1, shmem_rx_ptr[count - count +1].actuator);
-            printf("Actuator value = %d\n", shmem_rx_ptr[count - count + 1].value);
-
+            
             while(print_act > 0)
             {
-                // printf("Actuator %d = %d\n", count-print_act, shmem_rx_ptr[count - print_act].actuator);
-                // printf("Actuator value = %d\n", shmem_rx_ptr[count - print_act].value);
+                printf("Actuator %d = %d\n", count-print_act, shmem_rx_ptr[count - print_act].actuator);
+                printf("Actuator value = %d\n", shmem_rx_ptr[count - print_act].value);
 
                 // memcpy((void*)shmem_rx_ptr, (void*)(&share_mem_ptr[0]), sizeof(actuator_shmem));
 
-                if(shmem_rx_ptr[count-print_act].actuator == 0)
+                if(shmem_rx_ptr[count-print_act].actuator == 2)
                 {
                     printf("LED state\n");
                     if((ret = gpio_set_value(LED, shmem_rx_ptr[count-print_act].value)) != 0)
@@ -581,16 +598,31 @@ void rx_uart(void)
                 else if(shmem_rx_ptr[count-print_act].actuator == 1)
                 {
                     printf("Buzzer on\n");
-                    if((ret = gpio_set_value(BUZ, shmem_rx_ptr[count-print_act].value)) != 0)
+                    int i;
+                    if(shmem_rx_ptr[count-print_act].value == 1)
                     {
-                        perror("gpio_set_value");
-                        exit(1);
-                    }
+                        for(i =0; i<100; i++)
+                        {
+                            if((ret = gpio_set_value(BUZ, 1)) != 0)
+                            {
+                                perror("gpio_set_ON_value");
+                                exit(1);
+                            }
+                            usleep(1000);
+                            if((ret = gpio_set_value(BUZ, 0)) != 0)
+                            {
+                                perror("gpio_set_OFF_value");
+                                exit(1);
+                            }
+                            usleep(1000);
+                        }
+                    }  
                 }
                 print_act--;
-            };
-            // printf("Test if it reaches here\n");
-            sem_post(actuator_sem);
+            }
+        }
+        sem_post(actuator_sem);
+    }
         // }
 
         /* Wait for humidty and add sleep */
@@ -710,11 +742,13 @@ int main(void)
     sem_t *main_sem;
 	pid_t fork_id = 0;
 
+    buff = (char *) malloc(1000);
+
 	main_sem = sem_open(tmp_sem_name, O_CREAT, 0600, 0);
 	sem_close(main_sem);
 	main_sem = sem_open(amb_sem_name, O_CREAT, 0600, 0);
 	sem_close(main_sem);
-    main_sem = sem_open(rx_sem_name, O_CREAT, 0600, 0);
+    main_sem = sem_open(buf_sem_name, O_CREAT, 0600, 0);
 	sem_close(main_sem);
     main_sem = sem_open(act_sem_name, O_CREAT, 0600, 0);
 	sem_close(main_sem);
@@ -736,57 +770,61 @@ int main(void)
     actuator_init();
 
 	ftruncate(shm_1_fd1, SENSOR_SHMEM_PROD_COUNT * sizeof(sensor_shmem));
-
     ftruncate(shm_2_fd1, sizeof(actuator_shmem));
 
 	close(shm_1_fd1);
     close(shm_2_fd1);
 
-	tmp102_task();
-	fork_id = fork();
+    while(1)
+    {
+        tmp102_task();
+        fork_id = fork();
 
-	if(fork_id < 0)
-	{
-		exit(1);
-	}
+        if(fork_id < 0)
+        {
+            exit(1);
+        }
 
-	if(fork_id > 0)
-	{
-		exit(0);
-	}
+        if(fork_id > 0)
+        {
+            exit(0);
+        }
 
-    ambient_task();
-	fork_id = fork();
+        ambient_task();
+        fork_id = fork();
 
-	if(fork_id < 0)
-	{
-		exit(1);
-	}
+        if(fork_id < 0)
+        {
+            exit(1);
+        }
 
-	if(fork_id > 0)
-	{
-		exit(0);
-	}
+        if(fork_id > 0)
+        {
+            exit(0);
+        }
 
-	tx_uart();
+        tx_uart();
 
-    fork_id = fork();
+        fork_id = fork();
 
-	if(fork_id < 0)
-	{
-		exit(1);
-	}
+        if(fork_id < 0)
+        {
+            exit(1);
+        }
 
-	if(fork_id > 0)
-	{
-        rx_uart();
-		exit(0);
-	}
+        if(fork_id > 0)
+        {
+            rx_uart();
+            exit(0);
+        }
+    }
 
     
 	
 	sem_unlink(tmp_sem_name);
     sem_unlink(act_sem_name);
+    sem_unlink(buf_sem_name);
+    sem_unlink(amb_sem_name);
 
 	shm_unlink(SENSOR_SHMEM_DEF);
     shm_unlink(ACTUATOR_SHMEM_DEF);
