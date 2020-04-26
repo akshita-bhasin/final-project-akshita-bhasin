@@ -532,7 +532,7 @@ void rx_uart(void)
 
             print_act = count;
             printf("Count: %d, act_count :%d\n", count, print_act);
-            if(print_act > 0)
+            while(print_act > 0)
             {
                 printf("Actuator %d = %d\n", count-print_act, shmem_rx_ptr[count - print_act].actuator);
                 printf("Actuator value = %d\n", shmem_rx_ptr[count - print_act].value);
