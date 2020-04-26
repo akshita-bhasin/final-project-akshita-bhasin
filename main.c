@@ -524,7 +524,7 @@ void rx_uart(void)
 
             printf("Receive characters\n");
 
-            if((count = read(uart_fd1, (void *)shmem_rx_ptr, sizeof(actuator_shmem))) < 0)
+            if((count = read(uart_fd1, &(shmem_rx), sizeof(actuator_shmem))) < 0)
             {
                 perror("read\n");
                 exit(1);
