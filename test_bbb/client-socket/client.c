@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
 		buf[numbytes] = '\0';
 		for(i=0; i< numbytes; i++)
 		{
-			printf("client: received '%d'\n",*buf+i);
+			printf("client: received '%hhn'\n",buf+i);
 		}
 		// status = log_setup();
 		// if(status == -1)
