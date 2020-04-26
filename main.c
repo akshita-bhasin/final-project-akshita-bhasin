@@ -702,6 +702,10 @@ int sock_task(void)
     syslog(LOG_INFO,"Accepted Connection from %s", inet_ntoa(their_addr.sin_addr));
     send(new_fd, tmp_buffer, 5, 0);   // server to client
     send(new_fd, lux_buffer, 5, 0);
+    for(i=0; i<sizeof(lux_buffer); i++)
+    {
+        syslog(LOG_DEBUG, "Buffer contents: %u", lux_buffer[i]);
+    }
     syslog(LOG_INFO,"Closed Connection from %s", inet_ntoa(their_addr.sin_addr));
     return 0;
 }
