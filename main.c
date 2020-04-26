@@ -514,12 +514,13 @@ void rx_uart(void)
 
     actuator_sem = sem_open(act_sem_name, 0, 0600, 0);
 
-    // while(count!=0)
-    // {
-        // ret = sem_wait(actuator_sem);
+    while(count!=0)
+    {
+        count = 0;
+        ret = sem_wait(actuator_sem);
         
-        // if (ret == 0)
-        // {
+        if (ret == 0)
+        {
             fcntl(uart_fd1, F_SETFL, 0);
 
             printf("Receive characters\n");
@@ -560,9 +561,9 @@ void rx_uart(void)
                 }
                 print_act--;
             }
-        // }
+        }
         sem_post(actuator_sem);
-    // }
+    }
         // }
 
         /* Wait for humidty and add sleep */
