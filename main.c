@@ -498,7 +498,7 @@ void rx_uart(void)
     actuator_shmem shmem_rx;
     actuator_shmem *shmem_rx_ptr = &shmem_rx;
     actuator_shmem * share_mem_ptr= NULL;
-    int ret, count=1;
+    int ret, count=1, print_act;
 
     if((shm_2_fd = shm_open(ACTUATOR_SHMEM_DEF, O_RDWR, 0)) < 0)
     {
@@ -530,27 +530,33 @@ void rx_uart(void)
                 exit(1);
             }
 
-            printf("Actuator = %d\n", shmem_rx.actuator);
-            printf("Actuator value = %d\n", shmem_rx.value);
-
-            // memcpy((void*)shmem_rx_ptr, (void*)(&share_mem_ptr[0]), sizeof(actuator_shmem));
-
-            if(shmem_rx.actuator == 0)
+            printf("Count: %d\n", count);
+            print_act = count;
+            if(print_act > 0)
             {
-                if((ret = gpio_set_value(LED, shmem_rx.value)) != 0)
+                printf("Actuator = %d\n", shmem_rx_ptr[count - print_act].actuator);
+                printf("Actuator value = %d\n", shmem_rx_ptr[count - print_act].value);
+
+                // memcpy((void*)shmem_rx_ptr, (void*)(&share_mem_ptr[0]), sizeof(actuator_shmem));
+
+                if(shmem_rx_ptr[count-print_act].actuator == 0)
                 {
-                    perror("gpio_set_value");
-                    exit(1);
+                    if((ret = gpio_set_value(LED, shmem_rx_ptr[count-print_act].value)) != 0)
+                    {
+                        perror("gpio_set_value");
+                        exit(1);
+                    }
                 }
-            }
-            else if(shmem_rx.actuator == 1)
-            {
-                printf("Buzzer on");
-                if((ret = gpio_set_value(BUZ, shmem_rx.value)) != 0)
+                else if(shmem_rx_ptr[count-print_act].actuator == 1)
                 {
-                    perror("gpio_set_value");
-                    exit(1);
+                    printf("Buzzer on");
+                    if((ret = gpio_set_value(BUZ, shmem_rx_ptr[count-print_act].value)) != 0)
+                    {
+                        perror("gpio_set_value");
+                        exit(1);
+                    }
                 }
+                print_act-=1;
             }
             // printf("Test if it reaches here\n");
             sem_post(actuator_sem);
