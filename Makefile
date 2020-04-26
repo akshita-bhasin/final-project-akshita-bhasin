@@ -30,8 +30,7 @@ main.o: main.c inc/led.h
 led.o: src/led.c inc/led.h
 	@$(CC) $(CFLAGS) $(INCLUDES) -c src/led.c
 
-shtc3: test_bbb/SHTC3.c
-	@$(CC) $(CFLAGS) $(INCLUDES) test_bbb/SHTC3.c -o shtc3
+shtc3: test_bbb/
 
 server: test_bbb/server-socket/aesdsocket.c
 	@echo "$(CC) compilation"

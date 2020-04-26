@@ -555,11 +555,25 @@ void rx_uart(void)
                 else if(shmem_rx_ptr[count-print_act].actuator == 1)
                 {
                     printf("Buzzer on\n");
-                    if((ret = gpio_set_value(BUZ, shmem_rx_ptr[count-print_act].value)) != 0)
+                    int i;
+                    if(shmem_rx_ptr[count-print_act].value == 1)
                     {
-                        perror("gpio_set_value");
-                        exit(1);
-                    }
+                        for(i =0; i<10; i++)
+                        {
+                            if((ret = gpio_set_value(BUZ, 1)) != 0)
+                            {
+                                perror("gpio_set_ON_value");
+                                exit(1);
+                            }
+                            usleep(1000);
+                            if((ret = gpio_set_value(BUZ, 0)) != 0)
+                            {
+                                perror("gpio_set_OFF_value");
+                                exit(1);
+                            }
+                            usleep(1000);
+                        }
+                    }  
                 }
                 print_act--;
             }
@@ -624,46 +638,50 @@ int main(void)
 	close(shm_1_fd1);
     close(shm_2_fd1);
 
-	tmp102_task();
-	fork_id = fork();
 
-	if(fork_id < 0)
-	{
-		exit(1);
-	}
+    while(1)
+    {
+        tmp102_task();
+        fork_id = fork();
 
-	if(fork_id > 0)
-	{
-		exit(0);
-	}
+        if(fork_id < 0)
+        {
+            exit(1);
+        }
 
-    ambient_task();
-	fork_id = fork();
+        if(fork_id > 0)
+        {
+            exit(0);
+        }
 
-	if(fork_id < 0)
-	{
-		exit(1);
-	}
+        ambient_task();
+        fork_id = fork();
 
-	if(fork_id > 0)
-	{
-		exit(0);
-	}
+        if(fork_id < 0)
+        {
+            exit(1);
+        }
 
-	tx_uart();
+        if(fork_id > 0)
+        {
+            exit(0);
+        }
 
-    fork_id = fork();
+        tx_uart();
 
-	if(fork_id < 0)
-	{
-		exit(1);
-	}
+        fork_id = fork();
 
-	if(fork_id > 0)
-	{
-        rx_uart();
-		exit(0);
-	}
+        if(fork_id < 0)
+        {
+            exit(1);
+        }
+
+        if(fork_id > 0)
+        {
+            rx_uart();
+            exit(0);
+        }
+    }
 
     // printf("Outside rx_uart\n");
     // fork_id = fork();
