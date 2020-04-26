@@ -10,9 +10,7 @@
 
 #include "env_mon.h"
 
-#define TASKS 4
-
-int shared_memory_check(void);
+// sensor_shmem *buf = NULL;
 
 void signal_handler(int signum)
 {
@@ -310,7 +308,7 @@ void tmp102_task(void)
     }
 
     int shm_1_fd;
-    sem_t *temperature_sem;
+    sem_t *temperature_sem, *buffer_sem;
     sensor_shmem share_mem_temp = {1, c};
     sensor_shmem *share_mem_temp_ptr = &share_mem_temp;
     sensor_shmem *share_mem_ptr = NULL;
@@ -333,7 +331,17 @@ void tmp102_task(void)
         exit(1);
     }
 
+    if((buffer_sem = sem_open(buf_sem_name, 0, 0666, 0)) < 0)
+    {
+        perror("sem_open");
+        exit(1);
+    }
+
     memcpy((void*)(&share_mem_ptr[0]), (void*)share_mem_temp_ptr, sizeof(sensor_shmem));
+
+    sem_wait(buffer_sem);
+    memcpy((void*)(&buf[buffer_count++]), (void *) share_mem_temp_ptr, sizeof(sensor_shmem));
+    sem_post(buffer_sem);
 
     sem_post(temperature_sem);
 
@@ -358,7 +366,7 @@ void ambient_task(void)
     printf("In LUX Task");
 
     int shm_1_fd;
-    sem_t *ambient_sem;
+    sem_t *ambient_sem, *buffer_sem;
     sensor_shmem share_mem_veml = {0, 0};
     sensor_shmem *share_mem_veml_ptr = &share_mem_veml;
     sensor_shmem *share_mem_ptr = NULL;
@@ -382,6 +390,11 @@ void ambient_task(void)
         exit(1);
     }
 
+    if((buffer_sem = sem_open(buf_sem_name, 0, 0666, 0)) < 0)
+    {
+        perror("sem_open");
+        exit(1);
+    }
     // while(1)
     // {
         sensor = read_values();
@@ -390,6 +403,10 @@ void ambient_task(void)
         share_mem_veml_ptr->value = sensor;
 
         memcpy((void*)(&share_mem_ptr[1]), (void*)share_mem_veml_ptr, sizeof(sensor_shmem));
+
+        sem_wait(buffer_sem);
+        memcpy((void*)(&buf[buffer_count++]), (void *) share_mem_veml_ptr, sizeof(sensor_shmem));
+        sem_post(buffer_sem);
 
         sem_post(ambient_sem);
 
@@ -610,7 +627,7 @@ int main(void)
 	sem_close(main_sem);
 	main_sem = sem_open(amb_sem_name, O_CREAT, 0600, 0);
 	sem_close(main_sem);
-    main_sem = sem_open(rx_sem_name, O_CREAT, 0600, 0);
+    main_sem = sem_open(buf_sem_name, O_CREAT, 0600, 0);
 	sem_close(main_sem);
     main_sem = sem_open(act_sem_name, O_CREAT, 0600, 0);
 	sem_close(main_sem);
@@ -714,6 +731,8 @@ int main(void)
 	
 	sem_unlink(tmp_sem_name);
     sem_unlink(act_sem_name);
+    sem_unlink(buf_sem_name);
+    sem_unlink(amb_sem_name);
 
 	shm_unlink(SENSOR_SHMEM_DEF);
     shm_unlink(ACTUATOR_SHMEM_DEF);
