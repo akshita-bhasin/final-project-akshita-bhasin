@@ -339,10 +339,10 @@ void tmp102_task(void)
 
     memcpy((void*)(&share_mem_ptr[0]), (void*)share_mem_temp_ptr, sizeof(sensor_shmem));
     
-    sem_post(buffer_sem);
-    sem_wait(buffer_sem);
-    sprintf(buff, "Temperature is %d", (int)c);
-    sem_post(buffer_sem);
+    // sem_post(buffer_sem);
+    // sem_wait(buffer_sem);
+    // sprintf(buff, "Temperature is %d", (int)c);
+    // sem_post(buffer_sem);
 
     sem_post(temperature_sem);
 
@@ -405,9 +405,9 @@ void ambient_task(void)
 
         memcpy((void*)(&share_mem_ptr[1]), (void*)share_mem_veml_ptr, sizeof(sensor_shmem));
 
-        sem_wait(buffer_sem);
-        sprintf(buff, "Light sensor value is %d", sensor);
-        sem_post(buffer_sem);
+        // sem_wait(buffer_sem);
+        // sprintf(buff, "Light sensor value is %d", sensor);
+        // sem_post(buffer_sem);
 
         sem_post(ambient_sem);
 
@@ -652,15 +652,13 @@ int main(void)
     actuator_init();
 
 	ftruncate(shm_1_fd1, SENSOR_SHMEM_PROD_COUNT * sizeof(sensor_shmem));
-
     ftruncate(shm_2_fd1, sizeof(actuator_shmem));
 
 	close(shm_1_fd1);
     close(shm_2_fd1);
 
-
-    // while(1)
-    // {
+    while(1)
+    {
         tmp102_task();
         fork_id = fork();
 
@@ -701,7 +699,7 @@ int main(void)
             rx_uart();
             exit(0);
         }
-    // }
+    }
 
     // printf("Outside rx_uart\n");
     // fork_id = fork();
