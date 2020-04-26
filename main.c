@@ -558,7 +558,7 @@ void rx_uart(void)
                     int i;
                     if(shmem_rx_ptr[count-print_act].value == 1)
                     {
-                        for(i =0; i<10; i++)
+                        for(i =0; i<100; i++)
                         {
                             if((ret = gpio_set_value(BUZ, 1)) != 0)
                             {
