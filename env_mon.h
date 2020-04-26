@@ -60,15 +60,13 @@
 #define NR_OPEN 1024
 
 
-char tmp_buffer[5];
-char lux_buffer[5];
+uint8_t tmp_buffer[5];
+uint8_t lux_buffer[5];
 
 int tmp102_fd1;
 int ambient_fd1;
 int i2c_fd;
 int uart_fd1;
-
-
 
 typedef struct {
      uint8_t sensor; 
@@ -92,11 +90,22 @@ int psaveoff_command[3]  = {0x03, 0x00, 0x00};
 int psaveon_command[3]   = {0x03, 0x01, 0x00};
 int read_command         = 0x04;
 
-
 char* tmp_sem_name = "tmp102_sem";
 char* act_sem_name = "actuat_sem";
 char* buf_sem_name = "buff_w_sem";
 char* amb_sem_name = "ambient_sem";
+
+int new_fd, sockfd;
+volatile int signal_set = 0;
+
+int addr_status;
+int bindfd, listenfd, setsockfd;
+int option = 1;
+
+struct addrinfo hints;
+struct addrinfo *res; //point to results
+struct sockaddr_in their_addr;
+socklen_t addr_size;
 
 // function prototypes
 int write_single_byte(int file, unsigned char device_addr, int command);
