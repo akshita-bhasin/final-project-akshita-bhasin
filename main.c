@@ -514,8 +514,8 @@ void rx_uart(void)
 
     actuator_sem = sem_open(act_sem_name, 0, 0600, 0);
 
-    // while(1)
-    // {
+    while(count!=0)
+    {
         // ret = sem_wait(actuator_sem);
         
         // if (ret == 0)
@@ -532,17 +532,11 @@ void rx_uart(void)
 
             print_act = count;
             printf("Count: %d, act_count :%d\n", count, print_act);
-
-            printf("Actuator %d = %d\n", count-count, shmem_rx_ptr[count - count].actuator);
-            printf("Actuator value = %d\n", shmem_rx_ptr[count - count].value);
-
-            printf("Actuator %d = %d\n", count-count+1, shmem_rx_ptr[count - count +1].actuator);
-            printf("Actuator value = %d\n", shmem_rx_ptr[count - count + 1].value);
-
-            while(print_act > 0)
-            {
-                // printf("Actuator %d = %d\n", count-print_act, shmem_rx_ptr[count - print_act].actuator);
-                // printf("Actuator value = %d\n", shmem_rx_ptr[count - print_act].value);
+            
+            // while(print_act > 0)
+            // {
+                printf("Actuator %d = %d\n", count-print_act, shmem_rx_ptr[count - print_act].actuator);
+                printf("Actuator value = %d\n", shmem_rx_ptr[count - print_act].value);
 
                 // memcpy((void*)shmem_rx_ptr, (void*)(&share_mem_ptr[0]), sizeof(actuator_shmem));
 
@@ -565,7 +559,8 @@ void rx_uart(void)
                     }
                 }
                 print_act--;
-            };
+    }
+            // };
             // printf("Test if it reaches here\n");
             sem_post(actuator_sem);
         // }
