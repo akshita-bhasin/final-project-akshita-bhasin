@@ -530,11 +530,11 @@ void rx_uart(void)
                 exit(1);
             }
 
-            printf("Count: %d\n", count);
             print_act = count;
+            printf("Count: %d, act_count :%d\n", count, print_act);
             if(print_act > 0)
             {
-                printf("Actuator = %d\n", shmem_rx_ptr[count - print_act].actuator);
+                printf("Actuator %d = %d\n", count-print_act, shmem_rx_ptr[count - print_act].actuator);
                 printf("Actuator value = %d\n", shmem_rx_ptr[count - print_act].value);
 
                 // memcpy((void*)shmem_rx_ptr, (void*)(&share_mem_ptr[0]), sizeof(actuator_shmem));
