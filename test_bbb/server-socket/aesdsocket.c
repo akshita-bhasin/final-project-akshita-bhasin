@@ -160,7 +160,6 @@ int main(int argc, char* argv[])
 
     while(1)
     {
-        int index;
         addr_size = sizeof their_addr;
         new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &addr_size); //accept an incoming connection
         if(new_fd == -1)
@@ -171,11 +170,8 @@ int main(int argc, char* argv[])
         //ip_address
         syslog(LOG_INFO,"Accepted Connection from %s", inet_ntoa(their_addr.sin_addr));
 
-        send(new_fd, (void*)buf , sizeof(sensor_shmem), 0);   // server to client  
-        for(index = 0; index < sizeof(sensor_shmem); index++)
-        {
-            syslog(LOG_INFO, "Buffer contents: %d, %d", buf[index].sensor, buf[index].value);
-        }
+        send(new_fd, (void*)buff , sizeof(buff), 0);   // server to client  
+        syslog(LOG_INFO, "Buffer contents: %s", buff);
 
         syslog(LOG_INFO,"Closed Connection from %s", inet_ntoa(their_addr.sin_addr));
    }

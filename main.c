@@ -341,7 +341,7 @@ void tmp102_task(void)
     
     sem_post(buffer_sem);
     sem_wait(buffer_sem);
-    memcpy((void*)(&buf[buffer_count++]), (void *) share_mem_temp_ptr, sizeof(sensor_shmem));
+    sprintf(buff, "Temperature is %d", (int)c);
     sem_post(buffer_sem);
 
     sem_post(temperature_sem);
@@ -406,7 +406,7 @@ void ambient_task(void)
         memcpy((void*)(&share_mem_ptr[1]), (void*)share_mem_veml_ptr, sizeof(sensor_shmem));
 
         sem_wait(buffer_sem);
-        memcpy((void*)(&buf[buffer_count++]), (void *) share_mem_veml_ptr, sizeof(sensor_shmem));
+        sprintf(buff, "Light sensor value is %d", sensor);
         sem_post(buffer_sem);
 
         sem_post(ambient_sem);
@@ -623,6 +623,8 @@ int main(void)
 {
     sem_t *main_sem;
 	pid_t fork_id = 0;
+
+    buff = (char *) malloc(1000);
 
 	main_sem = sem_open(tmp_sem_name, O_CREAT, 0600, 0);
 	sem_close(main_sem);

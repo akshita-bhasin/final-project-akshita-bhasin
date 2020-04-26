@@ -69,7 +69,7 @@ typedef struct {
      uint8_t value;
 } actuator_shmem;
 
-sensor_shmem *buf = NULL;
+char *buff = NULL;
 
 int power_on_config = 0x800; //MSB = 0x8, LSB 0x00
 int power_saving_off = 0x0000; //PSM mode 1, disabled
