@@ -514,8 +514,8 @@ void rx_uart(void)
 
     actuator_sem = sem_open(act_sem_name, 0, 0600, 0);
 
-    while(count!=0)
-    {
+    // while(count!=0)
+    // {
         // ret = sem_wait(actuator_sem);
         
         // if (ret == 0)
@@ -540,7 +540,7 @@ void rx_uart(void)
 
                 // memcpy((void*)shmem_rx_ptr, (void*)(&share_mem_ptr[0]), sizeof(actuator_shmem));
 
-                if(shmem_rx_ptr[count-print_act].actuator == 0)
+                if(shmem_rx_ptr[count-print_act].actuator == 2)
                 {
                     printf("LED state\n");
                     if((ret = gpio_set_value(LED, shmem_rx_ptr[count-print_act].value)) != 0)
@@ -560,9 +560,9 @@ void rx_uart(void)
                 }
                 print_act--;
             }
-            printf("Test if it reaches here\n");
-            sem_post(actuator_sem);
-    }
+        // }
+        sem_post(actuator_sem);
+    // }
         // }
 
         /* Wait for humidty and add sleep */
