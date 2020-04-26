@@ -556,8 +556,9 @@ void rx_uart(void)
                         exit(1);
                     }
                 }
-                print_act-=1;
-            }
+                print_act--;
+                printf("next print_act :%d", print_act);
+            };
             // printf("Test if it reaches here\n");
             sem_post(actuator_sem);
         // }
