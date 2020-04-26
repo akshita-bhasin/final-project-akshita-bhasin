@@ -1,6 +1,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <netdb.h>
 #include <arpa/inet.h>
+#include <stddef.h>
 #include <linux/fs.h>
 #include <errno.h>
 #include <string.h>
@@ -50,10 +52,23 @@
 #define VEML_WRITE 0x90
 #define VEML_READ 0x91
 
+//socket
+
+#define PORT "9000"
+#define BACKLOG 10
+#define BUFFER_SIZE 20
+#define NR_OPEN 1024
+
+
+char tmp_buffer[5];
+char lux_buffer[5];
+
 int tmp102_fd1;
 int ambient_fd1;
 int i2c_fd;
 int uart_fd1;
+
+
 
 typedef struct {
      uint8_t sensor; 

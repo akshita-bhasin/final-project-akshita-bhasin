@@ -38,10 +38,18 @@ server: test_bbb/server-socket/aesdsocket.c
 	@$(CC) $(CFLAGS) $(INCLUDES) test_bbb/server-socket/aesdsocket.c -o server
 	@echo "Successful compilation!"
 
-client: test_bbb/client-socket/client.c
+client: client.o logging.o
 	@echo "$(CC) compilation"
-	@$(CC) $(CFLAGS) $(INCLUDES) test_bbb/client-socket/client.c -o client
+	@$(CC) $(CFLAGS) $(INCLUDES) client.o logging.o -o client
 	@echo "Successful compilation!"
+
+client.o: test_bbb/client-socket/client.c test_bbb/client-socket/logging.h
+	@echo "$(CC) compilation"
+	@$(CC) $(CFLAGS) $(INCLUDES) -c test_bbb/client-socket/client.c
+	@echo "Successful compilation!"
+
+logging.o: test_bbb/client-socket/logging.c test_bbb/client-socket/logging.h
+	@$(CC) $(CFLAGS) $(INCLUDES) -c test_bbb/client-socket/logging.c
 
 shared_mem: test_bbb/shared-memory/shared_memory.c
 	@echo "$(CC) compilation"

@@ -10,12 +10,35 @@
 
 #include "env_mon.h"
 
-#define TASKS 4
+#define TASKS 5 //changed here
+
+
+int new_fd, sockfd;
+volatile int signal_set = 0;
+
+int addr_status;
+int bindfd, listenfd, setsockfd;
+int option = 1;
+
+struct addrinfo hints;
+struct addrinfo *res; //point to results
+struct sockaddr_in their_addr;
+socklen_t addr_size;
 
 int shared_memory_check(void);
 
 void signal_handler(int signum)
 {
+    if((signum == SIGINT) || (signum == SIGTERM))
+    {
+        signal_set = 1;
+        syslog(LOG_INFO,"Caught signal,exiting");
+        shutdown(sockfd,SHUT_RDWR);
+    }
+    else 
+    {
+        exit(EXIT_FAILURE);
+    }
   assert(0 == close(tmp102_fd1));
   exit(signum);
 }
@@ -589,8 +612,101 @@ void rx_uart(void)
     sem_close(actuator_sem);
 }
 
+int sock_init(void)
+{
+    memset(&hints, 0, sizeof hints);
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_PASSIVE; // use my IP
+    hints.ai_protocol = 0;
+
+    //signal handling
+    if(signal(SIGINT,signal_handler) == SIG_ERR)
+    {
+        perror("sigaction");
+        exit(1);
+    }
+    
+    
+
+    if(signal(SIGTERM,signal_handler) == SIG_ERR)
+    {
+        perror("sigaction");
+        exit(1);    
+    }
+
+    if ((addr_status = getaddrinfo(NULL, PORT, &hints, &res)) != 0) 
+    {
+        syslog(LOG_DEBUG,"getaddrinfo");
+        return -1;
+    }
+    
+    // loop through all the resuls and bind to the first we can
+    if ((sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol)) == -1) 
+    {
+        syslog(LOG_DEBUG,"socket");
+        return -1;
+    }
+
+    if((setsockfd = setsockopt(sockfd,SOL_SOCKET,SO_REUSEADDR,&option,sizeof(option))) == -1)
+    {
+        syslog(LOG_DEBUG,"setsockopt");
+        return -1;
+    }
+
+    if ((bindfd = bind(sockfd, res->ai_addr, res->ai_addrlen)) == -1) 
+    {
+       syslog(LOG_DEBUG,"bind");
+       return -1;
+    }
+    
+    if((listenfd = listen(sockfd, BACKLOG)) == -1){
+        syslog(LOG_DEBUG,"listen");
+        return -1;   
+    }
+    return 0;
+}
+
+
+int sock_task(void)
+{
+    while(1)
+    {
+        addr_size = sizeof their_addr;
+        new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &addr_size); //accept an incoming connection
+        if(new_fd == -1)
+        {
+            syslog(LOG_DEBUG,"accept");
+            return -1;   
+        }
+        //ip_address
+        syslog(LOG_INFO,"Accepted Connection from %s", inet_ntoa(their_addr.sin_addr));
+
+        
+       
+        send(new_fd, "HELLO", 6, 0);   // server to client
+        
+            
+    
+        syslog(LOG_INFO,"Closed Connection from %s", inet_ntoa(their_addr.sin_addr));
+        return 0;
+   }
+
+
+
+
+}
 int main(void)
 {
+    openlog(NULL, LOG_CONS | LOG_PERROR, LOG_USER);
+
+    int connect_status = sock_init();
+    if(connect_status != 0)
+    {
+        perror("Socket setup failed");
+        return -1;
+    }
+    
     sem_t *main_sem;
 	pid_t fork_id = 0;
 
@@ -667,34 +783,7 @@ int main(void)
 		exit(0);
 	}
 
-    // printf("Outside rx_uart\n");
-    // fork_id = fork();
-    // printf("fork_id after rx_uart: %d\n", fork_id);
-
-	// if(fork_id < 0)
-	// {
-	// 	exit(1);
-	// }
-
-	// if(fork_id == 0)
-	// {
-    //     actuator_task();
-	// 	exit(0);
-	// }
-
-    // fork_id = fork();
-
-	// if(fork_id < 0)
-	// {
-	// 	exit(1);
-	// }
-
-	// if(fork_id > 0)
-	// {
-	// 	exit(0);
-	// }
-
-    // task_test();
+    
 	
 	sem_unlink(tmp_sem_name);
     sem_unlink(act_sem_name);
@@ -704,76 +793,9 @@ int main(void)
 
     uart_deinit();
     
-    // actuator_deinit();
+    
 
     return 0;
 
-    // pid_t func_count[TASKS];
-    // int tasks, num_tasks = TASKS;
-    // sem_t *main_sem;
-    // int shmem_1_fd;
-    // void(*func_ptr[])(void) = { tmp102_task,
-    //                             tx_uart };
-    //                             // rx_uart
-    //                             // actuator_task };
-
-    // uart_init();
-    // tmp102_init();
-    // actuator_init();
-
-    // if((shmem_1_fd = shm_open(SENSOR_SHMEM_DEF, O_CREAT | O_RDWR, 0600)) < 0)
-    // {
-    //     perror("shm_open");
-    //     return -1;
-    // }
-
-    // ftruncate(shmem_1_fd, sizeof(sensor_shmem));
-
-    // if(close(shmem_1_fd) < 0)
-    // {
-    //     perror("close");
-    //     return -1;
-    // }
-
-    // if((main_sem = sem_open(tmp_sem_name, O_CREAT, 0600, 0)) < 0)
-    // {
-    //     perror("sem_open");
-    //     return -1;
-    // }
-
-    // sem_close(main_sem);
-
-    // for(tasks=0; tasks<num_tasks; tasks++) {
-    //     if((func_count[tasks] = fork()) < 0)
-    //     {
-    //         perror("fork");
-    //         exit(EXIT_FAILURE);
-    //     }
-    //     else if (func_count[tasks] == 0)
-    //     {
-    //         (*func_ptr[tasks])();
-    //         exit(EXIT_SUCCESS);
-    //     }
-    // }
-
-    // while(tasks > 0)
-    // {
-    //     tasks--;
-    // }
-
-    // uart_deinit();
-
-    // if(sem_unlink(tmp_sem_name) < 0)
-    // {
-    //     perror("sem_unlink");
-    //     return -1;
-    // }
     
-    // if(shm_unlink(SENSOR_SHMEM_DEF) < 0)
-    // {
-    //     perror("shm_unlink");
-    //     return -1;
-    // }
-
-    // return 0;
 }

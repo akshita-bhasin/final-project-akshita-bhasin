@@ -4,21 +4,23 @@
 ** Edited by Madhukar Arora
 */
 
-#include <stdio.h>
+
 #include <stdlib.h>
-#include <unistd.h>
 #include <errno.h>
-#include <string.h>
 #include <netdb.h>
-#include <sys/types.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
-
 #include <arpa/inet.h>
+#include <time.h>
+
+#include "logging.h"
 
 #define PORT "9000" // the port client will be connecting to 
 
 #define MAXDATASIZE 100 // max number of bytes we can get at once 
+
+
+
 
 // get sockaddr, IPv4 or IPv6:
 void *get_in_addr(struct sockaddr *sa)
@@ -32,6 +34,8 @@ void *get_in_addr(struct sockaddr *sa)
 
 int main(int argc, char *argv[])
 {
+	openlog(NULL, LOG_PERROR, LOG_USER);
+	int status;
 	int sockfd, numbytes;  
 	char buf[MAXDATASIZE];
 	struct addrinfo hints, *servinfo, *p;
@@ -51,7 +55,9 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
 		return 1;
 	}
+	
 
+	
 	// loop through all the results and connect to the first we can
 	for(p = servinfo; p != NULL; p = p->ai_next) {
 		if ((sockfd = socket(p->ai_family, p->ai_socktype,
@@ -79,15 +85,34 @@ int main(int argc, char *argv[])
 	printf("client: connecting to %s\n", s);
 
 	freeaddrinfo(servinfo); // all done with this structure
+	
+		if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) {
+			perror("recv");
+			exit(1);
+		}
 
-	if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) {
-	    perror("recv");
-	    exit(1);
-	}
+		buf[numbytes] = '\0';
 
-	buf[numbytes] = '\0';
-
-	printf("client: received '%s'\n",buf);
+		printf("client: received '%s'\n",buf);
+		status = log_setup();
+		if(status == -1)
+		{
+			perror("Error setting up log");
+			return -1;
+		}
+		log_write(buf);
+		
+		// https://www.geeksforgeeks.org/time-h-header-file-in-c-with-examples/
+		struct tm* ptr;
+		time_t t;
+		t = time(NULL);
+		ptr = localtime(&t);
+		char *timestamp = asctime(ptr);
+	
+		log_write(timestamp);
+		log_write("\n");
+		log_complete();
+	
 
 	close(sockfd);
 

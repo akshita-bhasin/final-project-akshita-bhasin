@@ -168,7 +168,13 @@ int main(int argc, char* argv[])
         //ip_address
         syslog(LOG_INFO,"Accepted Connection from %s", inet_ntoa(their_addr.sin_addr));
 
-        send(new_fd, "HELLO", 6, 0);   // server to client    
+        int i = 0;
+        while(i < 4)
+        {
+            send(new_fd, "HELLO", 6, 0);   // server to client
+            i++;
+        }
+            
     
         syslog(LOG_INFO,"Closed Connection from %s", inet_ntoa(their_addr.sin_addr));
    }
