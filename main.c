@@ -532,15 +532,23 @@ void rx_uart(void)
 
             print_act = count;
             printf("Count: %d, act_count :%d\n", count, print_act);
+
+            printf("Actuator %d = %d\n", count-count, shmem_rx_ptr[count - count].actuator);
+            printf("Actuator value = %d\n", shmem_rx_ptr[count - count].value);
+
+            printf("Actuator %d = %d\n", count-count+1, shmem_rx_ptr[count - count +1].actuator);
+            printf("Actuator value = %d\n", shmem_rx_ptr[count - count + 1].value);
+
             while(print_act > 0)
             {
-                printf("Actuator %d = %d\n", count-print_act, shmem_rx_ptr[count - print_act].actuator);
-                printf("Actuator value = %d\n", shmem_rx_ptr[count - print_act].value);
+                // printf("Actuator %d = %d\n", count-print_act, shmem_rx_ptr[count - print_act].actuator);
+                // printf("Actuator value = %d\n", shmem_rx_ptr[count - print_act].value);
 
                 // memcpy((void*)shmem_rx_ptr, (void*)(&share_mem_ptr[0]), sizeof(actuator_shmem));
 
                 if(shmem_rx_ptr[count-print_act].actuator == 0)
                 {
+                    printf("LED state\n");
                     if((ret = gpio_set_value(LED, shmem_rx_ptr[count-print_act].value)) != 0)
                     {
                         perror("gpio_set_value");
@@ -549,7 +557,7 @@ void rx_uart(void)
                 }
                 else if(shmem_rx_ptr[count-print_act].actuator == 1)
                 {
-                    printf("Buzzer on");
+                    printf("Buzzer on\n");
                     if((ret = gpio_set_value(BUZ, shmem_rx_ptr[count-print_act].value)) != 0)
                     {
                         perror("gpio_set_value");
@@ -557,7 +565,6 @@ void rx_uart(void)
                     }
                 }
                 print_act--;
-                printf("next print_act :%d", print_act);
             };
             // printf("Test if it reaches here\n");
             sem_post(actuator_sem);
