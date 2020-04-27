@@ -15,7 +15,7 @@ ifeq ($(LDFLAGS),)
 	LDFLAGS := -pthread -lrt
 endif
 
-all: environmental_monitoring client shared_mem ambient
+all: environmental_monitoring client tmp102 ambient
 
 environmental_monitoring: main.o led.o
 	@echo "$(CC) compilation"
@@ -35,17 +35,17 @@ client: client.o logging.o
 	@$(CC) $(CFLAGS) $(INCLUDES) client.o logging.o -o client
 	@echo "Successful compilation!"
 
-client.o: test_bbb/client-socket/client.c test_bbb/client-socket/logging.h
+client.o: src/client.c inc/logging.h
 	@echo "$(CC) compilation"
-	@$(CC) $(CFLAGS) $(INCLUDES) -c test_bbb/client-socket/client.c
+	@$(CC) $(CFLAGS) $(INCLUDES) -c src/client.c
 	@echo "Successful compilation!"
 
-logging.o: test_bbb/client-socket/logging.c test_bbb/client-socket/logging.h
-	@$(CC) $(CFLAGS) $(INCLUDES) -c test_bbb/client-socket/logging.c
+logging.o: src/logging.c inc/logging.h
+	@$(CC) $(CFLAGS) $(INCLUDES) -c src/logging.c
 
-shared_mem: test_bbb/shared-memory/shared_memory.c
+tmp102: test_bbb/tmp102/tmp102.c
 	@echo "$(CC) compilation"
-	@$(CC) $(CFLAGS) $(INCLUDES) test_bbb/shared-memory/shared_memory.c -o shared_mem $(LDFLAGS)
+	@$(CC) $(CFLAGS) $(INCLUDES) test_bbb/tmp102/tmp102.c -o tmp102
 	@echo "Successful compilation!"
 
 ambient: test_bbb/veml6030/ambient.c
@@ -53,4 +53,4 @@ ambient: test_bbb/veml6030/ambient.c
 	@$(CC) $(CFLAGS) $(INCLUDES) test_bbb/veml6030/ambient.c -o ambient
 	@echo "Successful compilation!"
 clean:
-	rm -rf *.o environmental_monitoring client shared_mem ambient
+	rm -rf *.o environmental_monitoring client tmp102 ambient
