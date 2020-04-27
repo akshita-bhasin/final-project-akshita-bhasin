@@ -1,4 +1,7 @@
 /*
+* Author: Akshita Bhasin
+* Brief: main program for aesd project
+*
 * References : https://www.geeksforgeeks.org/posix-shared-memory-api/
 *             http://www.cse.psu.edu/~deh25/cmpsc473/notes/OSC/Processes/shm-posix-producer-orig.c
 *             http://www.cse.psu.edu/~deh25/cmpsc473/notes/OSC/Processes/shm-posix-consumer.c
@@ -8,7 +11,7 @@
 *             
 */
 
-#include "env_mon.h"
+#include "inc/env_mon.h"
 
 #define TASKS 5 //changed here
 
@@ -43,12 +46,12 @@ void tmp102_init(void)
   
   if ((tmp102_fd1 = open(bus, O_RDWR)) < 0) {
     /* ERROR HANDLING: you can check errno to see what went wrong */
-    perror("Failed to open the i2c bus");
+    syslog(LOG_ERR,"Failed to open the i2c bus");
     exit(1);
   }
 
  if (ioctl(tmp102_fd1, I2C_SLAVE, addr) < 0) {
-   perror("Failed to acquire bus access and/or talk to slave.\n");
+   syslog(LOG_ERR,"Failed to acquire bus access and/or talk to slave.\n");
    /* ERROR HANDLING; you can check errno to see what went wrong */
    exit(1);
  }
@@ -72,7 +75,7 @@ void uart_init(void)
 
     if ((uart_fd1 = open("/dev/ttyO1", O_RDWR | O_NOCTTY | O_NDELAY)) < 0)
     {
-        perror("open\n");
+        syslog(LOG_ERR,"open\n");
         exit(1);
     }
 
@@ -113,23 +116,23 @@ void actuator_init(void)
 
     if((ret = gpio_export(LED)) != 0)
     {
-        perror("gpio_export");
+        syslog(LOG_ERR,"gpio_export");
         exit(1);
     }
     if((ret = gpio_export(BUZ)) != 0)
     {
-        perror("gpio_export");
+        syslog(LOG_ERR,"gpio_export");
         exit(1);
     }
 
     if((ret = gpio_set_dir(LED, GPIO_DIR_OUTPUT)) != 0)
     {
-        perror("gpio_set_dir");
+        syslog(LOG_ERR,"gpio_set_dir");
         exit(1);
     }
     if((ret = gpio_set_dir(BUZ, GPIO_DIR_OUTPUT)) != 0)
     {
-        perror("gpio_set_dir");
+        syslog(LOG_ERR,"gpio_set_dir");
         exit(1);
     }
 }
@@ -147,13 +150,13 @@ void actuator_deinit(void)
     int ret = 0;
     if((ret = gpio_unexport(LED)) != 0)
     {
-        perror("gpio_unexport");
+        syslog(LOG_ERR,"gpio_unexport");
         exit(1);
     }
 
     if((ret = gpio_unexport(BUZ)) != 0)
     {
-        perror("gpio_unexport");
+        syslog(LOG_ERR,"gpio_unexport");
         exit(1);
     }
 }
@@ -235,7 +238,7 @@ int write_single_byte(int file, unsigned char device_addr, int command)
     packets.msgs = &message;
     packets.nmsgs = 1;
     if(ioctl(file,I2C_RDWR,&packets) < 0){
-        perror("\n\rError writing single byte");
+        syslog(LOG_ERR,"\n\rError writing single byte");
         return -1;
     }
 
@@ -270,7 +273,7 @@ int write_word(int file, unsigned char device_addr, int* command)
     packets.msgs = &message;
     packets.nmsgs = 1;
     if(ioctl(file,I2C_RDWR,&packets) < 0){
-        perror("Error writing a word");
+        syslog(LOG_ERR,"Error writing a word");
         return -1;
     }
 
@@ -287,12 +290,12 @@ int write_word(int file, unsigned char device_addr, int* command)
 int ambient_init(void)
 { 
     if((i2c_fd = open(I2C_DEVICE,O_RDWR)) < 0){
-        perror("Opening I2C file error");
+        syslog(LOG_ERR,"Opening I2C file error");
         return -1;
     }
 
     if(ioctl(i2c_fd,I2C_SLAVE,VEML_ADDR) < 0){
-        perror("I2C ioctl error");
+        syslog(LOG_ERR,"I2C ioctl error");
         return -1;
     }
     return 0;
@@ -313,7 +316,7 @@ int ambient_on(void)
     //power on the sensor
     if((status = write_word(i2c_fd,VEML_ADDR,power_on_command)) != 0) 
     {
-        perror("Could not power on the ambient light sensor");
+        syslog(LOG_ERR,"Could not power on the ambient light sensor");
         return -1;
     }
     return status;
@@ -332,7 +335,7 @@ int ambient_power_save_on(void)
     uint8_t status;
     if((status = write_word(i2c_fd,VEML_ADDR,psaveon_command)) != 0)
     {
-        perror("Could not set up power saving mode");
+        syslog(LOG_ERR,"Could not set up power saving mode");
         return -1;
     }
     return status;
@@ -352,7 +355,7 @@ int read_values(void)
 
     if((status = write_single_byte(i2c_fd,VEML_ADDR,read_command)) != 0)
     {
-        perror("Phase 1 write for read failed");
+        syslog(LOG_ERR,"Phase 1 write for read failed");
         return -1;
     }
     value = i2c_smbus_read_word_data(i2c_fd,read_command);
@@ -373,19 +376,19 @@ void veml_init(void)
     ret = ambient_init(); 
     if(ret == -1)
     {
-        perror("Error in initialization");
+        syslog(LOG_ERR,"Error in initialization");
     } 
 
     ret = ambient_on();
     if(ret == -1)
     {
-        perror("Error switching on ambient");
+        syslog(LOG_ERR,"Error switching on ambient");
     }
 
     ret = ambient_power_save_on();
     if(ret == -1)
     {
-        perror("Failed to set power saving mode");
+        syslog(LOG_ERR,"Failed to set power saving mode");
     }
 }
 
@@ -399,7 +402,7 @@ void veml_init(void)
 
 void tmp102_task(void)
 {
-    printf("In TMP102 task\n");
+    syslog(LOG_INFO, "In TMP102 task\n");
 
     char buf[2] = {0};
     int temp;
@@ -409,7 +412,7 @@ void tmp102_task(void)
     // Using I2C Readgit@github.com:cu-ecen-5013/final-project-Gitanjali-Suresh.git
     if (read(tmp102_fd1,buf,2) != 2) {
         /* ERROR HANDLING: i2c transaction failed */
-        perror("Failed to read from the i2c bus.\n");
+        syslog(LOG_ERR, "Failed to read from the i2c bus.\n");
 
     } else {
 
@@ -423,53 +426,46 @@ void tmp102_task(void)
         c = temp*0.0625;
         f = (1.8 * c) + 32;
 
-        printf("Temp Fahrenheit: %f Celsius: %f\n", f, c);
+        syslog(LOG_INFO, "Temp Fahrenheit: %f Celsius: %f\n", f, c);
     }
 
     int shm_1_fd;
-    sem_t *temperature_sem, *buffer_sem;
+    sem_t *temperature_sem;
     sensor_shmem share_mem_temp = {1, c};
     sensor_shmem *share_mem_temp_ptr = &share_mem_temp;
     sensor_shmem *share_mem_ptr = NULL;
 
     if((shm_1_fd = shm_open(SENSOR_SHMEM_DEF,O_RDWR, 0666)) < 0)
     {
-        perror("SHM open");
+        syslog(LOG_ERR, "SHM open");
         exit(1);
     }
 
     if((share_mem_ptr = (sensor_shmem *)mmap(NULL, SENSOR_SHMEM_PROD_COUNT * sizeof(sensor_shmem), PROT_READ|PROT_WRITE, MAP_SHARED, shm_1_fd, 0)) < 0)
     {
-        perror("mmap");
+        syslog(LOG_ERR, "mmap");
         exit(1);
     }
 
     if((temperature_sem = sem_open(tmp_sem_name, 0, 0666, 0)) < 0)
     {
-        perror("sem_open");
+        syslog(LOG_ERR,"sem_open");
         exit(1);
     }
 
-    if((buffer_sem = sem_open(buf_sem_name, 0, 0666, 0)) < 0)
-    {
-        perror("sem_open");
-        exit(1);
-    }
 
     memcpy((void*)(&share_mem_ptr[0]), (void*)share_mem_temp_ptr, sizeof(sensor_shmem));
-    
-    // sem_post(buffer_sem);
-    // sem_wait(buffer_sem);
+
+    /* For sock_task */
     tmp_buffer[tmp_count++] = share_mem_ptr[0].value;
     if(tmp_count == 5)
         tmp_count = 0;
-    // sem_post(buffer_sem);
 
     sem_post(temperature_sem);
 
     if(munmap(share_mem_ptr, SENSOR_SHMEM_PROD_COUNT * sizeof(sensor_shmem)) < 0)
     {
-        perror("munmap");
+        syslog(LOG_ERR, "munmap");
         exit(1);
     }
 
@@ -477,7 +473,7 @@ void tmp102_task(void)
 
     if(close(shm_1_fd) < 0)
     {
-        perror("close");
+        syslog(LOG_ERR, "close");
         exit(1);
     }
 }
@@ -491,10 +487,10 @@ void tmp102_task(void)
 */
 void ambient_task(void)
 {
-    printf("In LUX Task");
+    syslog(LOG_INFO, "In LUX Task");
 
     int shm_1_fd;
-    sem_t *ambient_sem, *buffer_sem;
+    sem_t *ambient_sem;
     sensor_shmem share_mem_veml = {0, 0};
     sensor_shmem *share_mem_veml_ptr = &share_mem_veml;
     sensor_shmem *share_mem_ptr = NULL;
@@ -502,27 +498,22 @@ void ambient_task(void)
 
     if((shm_1_fd = shm_open(SENSOR_SHMEM_DEF,O_RDWR, 0666)) < 0)
     {
-        perror("SHM open");
+        syslog(LOG_ERR, "SHM open");
         exit(1);
     }
 
     if((share_mem_ptr = (sensor_shmem *)mmap(NULL, SENSOR_SHMEM_PROD_COUNT * sizeof(sensor_shmem), PROT_READ|PROT_WRITE, MAP_SHARED, shm_1_fd, 0)) < 0)
     {
-        perror("mmap");
+        syslog(LOG_ERR,"mmap");
         exit(1);
     }
 
     if((ambient_sem = sem_open(amb_sem_name, 0, 0666, 0)) < 0)
     {
-        perror("sem_open");
+        syslog(LOG_ERR,"sem_open");
         exit(1);
     }
 
-    if((buffer_sem = sem_open(buf_sem_name, 0, 0666, 0)) < 0)
-    {
-        perror("sem_open");
-        exit(1);
-    }
     // while(1)
 // {
     sensor = read_values();
@@ -535,27 +526,23 @@ void ambient_task(void)
     lux_buffer[lux_count++] = share_mem_ptr[1].value;
     if(lux_count == 5)
         lux_count = 0;
-    
-    // sem_wait(buffer_sem);
-    // sprintf(buff, "Light sensor value is %d", sensor);
-    // sem_post(buffer_sem);
 
     sem_post(ambient_sem);
 
-    printf("Sensor values: %d", sensor);
+    syslog(LOG_INFO ,"Sensor values: %d", sensor);
 
     sleep(2);
     
     if(munmap(share_mem_ptr, SENSOR_SHMEM_PROD_COUNT * sizeof(sensor_shmem)) < 0)
     {
-        perror("munmap");
+        syslog(LOG_ERR,"munmap");
     }
 
     sem_close(ambient_sem);
 
     if(close(shm_1_fd) < 0)
     {
-        perror("close");
+        syslog(LOG_ERR,"close");
         exit(1);
     }
 }
@@ -568,7 +555,7 @@ void ambient_task(void)
 */
 void tx_uart(void)
 {
-    printf("In UART Tx task\n");
+    syslog(LOG_INFO ,"In UART Tx task\n");
     int shm_1_fd;
     sem_t *temperature_sem, *ambient_sem;
     sensor_shmem shmem_tx;
@@ -578,13 +565,13 @@ void tx_uart(void)
 
     if((shm_1_fd = shm_open(SENSOR_SHMEM_DEF, O_RDWR, 0666)) < 0)
     {
-        perror("shm_open");
+        syslog(LOG_ERR,"shm_open");
         exit(1);
     }
 
     if((share_mem_ptr = (sensor_shmem *)mmap(NULL, sizeof(sensor_shmem), PROT_READ, MAP_SHARED, shm_1_fd, 0)) < 0)
     {
-        perror("mmap");
+        syslog(LOG_ERR,"mmap");
         exit(1);
     }
 
@@ -598,11 +585,11 @@ void tx_uart(void)
         if (ret == 0)
         {
             memcpy((void*)shmem_tx_ptr, (void*)(&share_mem_ptr[0]), sizeof(sensor_shmem));
-            printf("Temperature Sensor = %d\n", shmem_tx.sensor);
-            printf("Temperature Sensor value = %d\n", shmem_tx.value);
+            syslog(LOG_INFO ,"Temperature Sensor = %d\n", shmem_tx.sensor);
+            syslog(LOG_INFO ,"Temperature Sensor value = %d\n", shmem_tx.value);
             if((count = write(uart_fd1, shmem_tx_ptr, sizeof(sensor_shmem))) < 0)
             {
-                perror("write");
+                syslog(LOG_ERR,"write");
                 exit(1);
             }
         }
@@ -610,11 +597,11 @@ void tx_uart(void)
         if(sem_wait(ambient_sem) == 0)
         {
             memcpy((void*)shmem_tx_ptr, (void*)(&share_mem_ptr[1]), sizeof(sensor_shmem));
-            printf("Ambient Sensor = %d\n", shmem_tx.sensor);
-            printf("Ambient Sensor value = %d\n", shmem_tx.value);
+            syslog(LOG_INFO ,"Ambient Sensor = %d\n", shmem_tx.sensor);
+            syslog(LOG_INFO ,"Ambient Sensor value = %d\n", shmem_tx.value);
             if((count = write(uart_fd1, shmem_tx_ptr, sizeof(sensor_shmem))) < 0)
             {
-                perror("write");
+                syslog(LOG_ERR,"write");
                 exit(1);
             }
         }
@@ -624,13 +611,13 @@ void tx_uart(void)
 
     if(close(shm_1_fd) < 0)
     {
-        perror("close");
+        syslog(LOG_ERR,"close");
         exit(1);
     }
 
     if(munmap(share_mem_ptr, SENSOR_SHMEM_PROD_COUNT * sizeof(sensor_shmem)) < 0)
     {
-        perror("munmap");
+        syslog(LOG_ERR,"munmap");
         exit(1);
     }
 
@@ -646,7 +633,7 @@ void tx_uart(void)
 */
 void rx_uart(void)
 {
-    printf("In UART Rx task\n");
+    syslog(LOG_INFO ,"In UART Rx task\n");
     int shm_2_fd;
     sem_t *actuator_sem;
     actuator_shmem shmem_rx;
@@ -656,13 +643,13 @@ void rx_uart(void)
 
     if((shm_2_fd = shm_open(ACTUATOR_SHMEM_DEF, O_RDWR, 0)) < 0)
     {
-        perror("shm_open");
+        syslog(LOG_ERR,"shm_open");
         exit(1);
     }
 
     if((share_mem_ptr = (actuator_shmem *)mmap(NULL, sizeof(actuator_shmem), PROT_READ, MAP_SHARED, shm_2_fd, 0)) < 0)
     {
-        perror("mmap");
+        syslog(LOG_ERR,"mmap");
         exit(1);
     }
 
@@ -679,11 +666,11 @@ void rx_uart(void)
         {
             fcntl(uart_fd1, F_SETFL, 0);
 
-            printf("Receive characters\n");
+            syslog(LOG_INFO ,"Receive characters\n");
 
             if((count = read(uart_fd1, &(shmem_rx), sizeof(actuator_shmem))) < 0)
             {
-                perror("read\n");
+                syslog(LOG_ERR,"read\n");
                 exit(1);
             }
 
@@ -696,10 +683,10 @@ void rx_uart(void)
 
                 if(shmem_rx_ptr[count-print_act].actuator == 2)
                 {
-                    printf("LED state\n");
+                    syslog(LOG_INFO ,"LED state\n");
                     if((ret = gpio_set_value(LED, shmem_rx_ptr[count-print_act].value)) != 0)
                     {
-                        perror("gpio_set_value");
+                        syslog(LOG_ERR,"gpio_set_value");
                         exit(1);
                     }
                 }
@@ -712,18 +699,18 @@ void rx_uart(void)
                         {
                             if((ret = gpio_set_value(BUZ, 1)) != 0)
                             {
-                                perror("gpio_set_ON_value");
+                                syslog(LOG_ERR,"gpio_set_ON_value");
                                 exit(1);
                             }
                             usleep(1000);
                             if((ret = gpio_set_value(BUZ, 0)) != 0)
                             {
-                                perror("gpio_set_OFF_value");
+                                syslog(LOG_ERR,"gpio_set_OFF_value");
                                 exit(1);
                             }
                             usleep(1000);
                         }
-                    }  
+                    }
                 }
                 print_act--;
             }
@@ -733,17 +720,17 @@ void rx_uart(void)
 
     if(munmap(share_mem_ptr, sizeof(actuator_shmem)) < 0)
     {
-        perror("munmap");
+        syslog(LOG_ERR,"munmap");
         exit(1);
     }
 
     if(close(shm_2_fd) < 0)
     {
-        perror("close");
+        syslog(LOG_ERR,"close");
         exit(1);
     }
 
-    printf("Testing task working\n");
+    syslog(LOG_INFO ,"Testing task working\n");
     sem_close(actuator_sem);
 }
 
@@ -764,7 +751,7 @@ int sock_init(void)
     //signal handling
     if(signal(SIGINT,signal_handler) == SIG_ERR)
     {
-        perror("sigaction");
+        syslog(LOG_ERR,"sigaction");
         exit(1);
     }
     
@@ -772,7 +759,7 @@ int sock_init(void)
 
     if(signal(SIGTERM,signal_handler) == SIG_ERR)
     {
-        perror("sigaction");
+        syslog(LOG_ERR,"sigaction");
         exit(1);    
     }
 
@@ -824,6 +811,7 @@ int sock_task(void)
         syslog(LOG_DEBUG,"accept");
         return -1;   
     }
+
     //ip_address
     syslog(LOG_INFO,"Accepted Connection from %s", inet_ntoa(their_addr.sin_addr));
     char logstring[43];
@@ -860,7 +848,7 @@ int main(void)
     int connect_status = sock_init();
     if(connect_status != 0)
     {
-        perror("Socket setup failed");
+        syslog(LOG_ERR,"Socket setup failed");
         return -1;
     }
     
@@ -869,24 +857,23 @@ int main(void)
 
     buff = (char *) malloc(1000);
 
+
 	main_sem = sem_open(tmp_sem_name, O_CREAT, 0600, 0);
 	sem_close(main_sem);
 	main_sem = sem_open(amb_sem_name, O_CREAT, 0600, 0);
-	sem_close(main_sem);
-    main_sem = sem_open(buf_sem_name, O_CREAT, 0600, 0);
 	sem_close(main_sem);
     main_sem = sem_open(act_sem_name, O_CREAT, 0600, 0);
 	sem_close(main_sem);
 	int shm_1_fd1 = shm_open(SENSOR_SHMEM_DEF,O_CREAT | O_RDWR, 0666);
 	if(shm_1_fd1 < 0)
 	{ 
-		printf("open\n"); 
+		syslog(LOG_INFO ,"open\n"); 
 	}
 
     int shm_2_fd1 = shm_open(ACTUATOR_SHMEM_DEF,O_CREAT | O_RDWR, 0666);
 	if(shm_2_fd1 < 0)
 	{ 
-		printf("open\n"); 
+		syslog(LOG_INFO ,"open\n"); 
 	}
 
     uart_init();
@@ -955,7 +942,6 @@ int main(void)
 	
 	sem_unlink(tmp_sem_name);
     sem_unlink(act_sem_name);
-    sem_unlink(buf_sem_name);
     sem_unlink(amb_sem_name);
 
 	shm_unlink(SENSOR_SHMEM_DEF);

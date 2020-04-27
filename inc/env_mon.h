@@ -23,7 +23,7 @@
 #include <assert.h>
 #include <semaphore.h>
 #include <sys/mman.h>
-#include "inc/led.h"
+#include "led.h"
 #include <sys/shm.h>
 #include <time.h>
 
@@ -93,7 +93,6 @@ int read_command         = 0x04;
 
 char* tmp_sem_name = "tmp102_sem";
 char* act_sem_name = "actuat_sem";
-char* buf_sem_name = "buff_w_sem";
 char* amb_sem_name = "ambient_sem";
 
 int new_fd, sockfd;
