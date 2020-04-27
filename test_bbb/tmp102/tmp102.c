@@ -29,7 +29,7 @@ void signal_handler(int signum)
 int main(){
 
 
-  char *bus = "/dev/i2c-1"; /* Pins P9_17 and P9_18 */
+  char *bus = "/dev/i2c-2"; /* Pins P9_17 and P9_18 */
   int addr = SLAVE_ADDR;          /* The I2C address of TMP102 */
   char buf[2] = {0};
   int temp;

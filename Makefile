@@ -15,7 +15,7 @@ ifeq ($(LDFLAGS),)
 	LDFLAGS := -pthread -lrt
 endif
 
-all: environmental_monitoring client
+all: environmental_monitoring client tmp102 ambient
 
 environmental_monitoring: main.o led.o
 	@echo "$(CC) compilation"
@@ -43,14 +43,14 @@ client.o: src/client.c inc/logging.h
 logging.o: src/logging.c inc/logging.h
 	@$(CC) $(CFLAGS) $(INCLUDES) -c src/logging.c
 
-# tmp102: test_bbb/tmp102/tmp102.c
-# 	@echo "$(CC) compilation"
-# 	@$(CC) $(CFLAGS) $(INCLUDES) test_bbb/tmp102/tmp102.c -o tmp102
-# 	@echo "Successful compilation!"
+tmp102: test_bbb/tmp102/tmp102.c
+	@echo "$(CC) compilation"
+	@$(CC) $(CFLAGS) $(INCLUDES) test_bbb/tmp102/tmp102.c -o tmp102
+	@echo "Successful compilation!"
 
-# ambient: test_bbb/veml6030/ambient.c
-# 	@echo "$(CC) compilation"
-# 	@$(CC) $(CFLAGS) $(INCLUDES) test_bbb/veml6030/ambient.c -o ambient
-# 	@echo "Successful compilation!"
+ambient: test_bbb/veml6030/ambient.c
+	@echo "$(CC) compilation"
+	@$(CC) $(CFLAGS) $(INCLUDES) test_bbb/veml6030/ambient.c -o ambient
+	@echo "Successful compilation!"
 clean:
-	rm -rf *.o environmental_monitoring client
+	rm -rf *.o environmental_monitoring client tmp102 ambient
