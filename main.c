@@ -29,6 +29,13 @@ void signal_handler(int signum)
   exit(signum);
 }
 
+
+/*
+* Function name : tmp102_init
+* Parameters    : void
+* Return Type   : void
+* @Brief        : initialize the Temperature sensor on I2C-2 Bus of BeagleBone 
+*/
 void tmp102_init(void)
 {
   char *bus = "/dev/i2c-2"; /* Pins P9_19 and P9_20 */
@@ -51,6 +58,14 @@ void tmp102_init(void)
 
 }
 
+
+
+/*
+* Function name : uart_init
+* Parameters    : void
+* Return Type   : void
+* @Brief        : initialize the UART on BeagleBone 
+*/
 void uart_init(void)
 {
     struct termios options;
@@ -72,11 +87,26 @@ void uart_init(void)
    	tcsetattr(uart_fd1, TCSANOW, &options); 
 }
 
+
+/*
+* Function name : uart_deinit
+* Parameters    : void
+* Return Type   : void
+* @Brief        : close the UART file descriptor 
+*/
 void uart_deinit(void)
 {
     close(uart_fd1);
 }
 
+
+
+/*
+* Function name : actuator_init
+* Parameters    : void
+* Return Type   : void
+* @Brief        : set the GPIO pins for actuation of LED and Buzzer on the Beagle Bone 
+*/
 void actuator_init(void)
 {
     int ret = 0;
@@ -104,6 +134,14 @@ void actuator_init(void)
     }
 }
 
+
+/*
+* Function name : actuator_deinit
+* Parameters    : void
+* Return Type   : void
+* @Brief        : deinitialize the for actuation of LED and Buzzer on the Beagle Bone
+*/
+
 void actuator_deinit(void)
 {
     int ret = 0;
@@ -120,6 +158,14 @@ void actuator_deinit(void)
     }
 }
 
+
+/*
+* Function name : i2c_smbus_access
+* Parameters    : file descriptor, read_write operation, command, size, and data
+* Return Type   : __s32 of typedef signed int
+* @Brief        : function to gain access of the smbus 
+* Leverage      : https://github.com/shenki/linux-i2c-example/blob/master/i2c_example.c
+*/
  __s32 i2c_smbus_access(int file, char read_write, __u8 command, int size, union i2c_smbus_data *data)
  {
      struct i2c_smbus_ioctl_data args;
@@ -131,7 +177,13 @@ void actuator_deinit(void)
 
      return ioctl(file,I2C_SMBUS,&args);
  }
-
+/*
+* Function name : i2c_smbus_read_byte_data
+* Parameters    : file descriptor, command
+* Return Type   : __s32 of typedef signed int
+* @Brief        : reads a byte of data from the device connected to the smbus 
+* Leverage      : https://github.com/shenki/linux-i2c-example/blob/master/i2c_example.c
+*/
 static inline __s32 i2c_smbus_read_byte_data(int file, __u8 command)
 {
     union i2c_smbus_data data;
@@ -144,7 +196,13 @@ static inline __s32 i2c_smbus_read_byte_data(int file, __u8 command)
     
 }
 
-
+/*
+* Function name : i2c_smbus_read_word_data
+* Parameters    : file descriptor, command
+* Return Type   : __s32 of typedef signed int
+* @Brief        : reads a word of data from the device connected to the smbus 
+* Leverage      : https://github.com/shenki/linux-i2c-example/blob/master/i2c_example.c
+*/
 static inline __s32 i2c_smbus_read_word_data(int file, __u8 command)
 {
     union i2c_smbus_data data;
@@ -156,10 +214,13 @@ static inline __s32 i2c_smbus_read_word_data(int file, __u8 command)
     }
 }
 
- /*
-// https://stackoverflow.com/questions/52975817/setup-i2c-reading-and-writing-in-c-language
-// */
-
+/*
+* Function name : write_single_byte
+* Parameters    : file descriptor, device address, command
+* Return Type   : int
+* @Brief        : write a byte of data to the device 
+* Leverage      : https://stackoverflow.com/questions/52975817/setup-i2c-reading-and-writing-in-c-language
+*/
 int write_single_byte(int file, unsigned char device_addr, int command)
 {
     uint8_t outbuf;
@@ -181,6 +242,14 @@ int write_single_byte(int file, unsigned char device_addr, int command)
     return 0;    
 }
 
+
+/*
+* Function name : write_word
+* Parameters    : file descriptor, device address, command
+* Return Type   : int
+* @Brief        : write a word size of data to the device 
+* Leverage      : https://stackoverflow.com/questions/52975817/setup-i2c-reading-and-writing-in-c-language
+*/
 int write_word(int file, unsigned char device_addr, int* command)
 {
     uint8_t outbuf[3];
@@ -209,6 +278,12 @@ int write_word(int file, unsigned char device_addr, int* command)
 }
 
 
+/*
+* Function name : ambient_init
+* Parameters    : void
+* Return Type   : int
+* @Brief        : initialize the ambient light sensor on the I2C Bus  
+*/
 int ambient_init(void)
 { 
     if((i2c_fd = open(I2C_DEVICE,O_RDWR)) < 0){
@@ -224,6 +299,14 @@ int ambient_init(void)
 
 }
 
+
+
+/*
+* Function name : ambient_on
+* Parameters    : void
+* Return Type   : int
+* @Brief        : power on the ambient light sensor on the I2C Bus  
+*/
 int ambient_on(void)
 {
     uint8_t status;
@@ -237,6 +320,13 @@ int ambient_on(void)
  
 }
 
+
+/*
+* Function name : ambient_power_save_on
+* Parameters    : void
+* Return Type   : int
+* @Brief        : switch on the power save mode on the ambient light sensor on the I2C Bus  
+*/
 int ambient_power_save_on(void)
 {
     uint8_t status;
@@ -249,6 +339,13 @@ int ambient_power_save_on(void)
 
 }
 
+
+/*
+* Function name : read_values
+* Parameters    : void
+* Return Type   : int
+* @Brief        : read values from the ambient light sensor on the I2C Bus  
+*/
 int read_values(void)
 {
     int value,status;
@@ -263,6 +360,13 @@ int read_values(void)
    
 }
 
+
+/*
+* Function name : veml_init
+* Parameters    : void
+* Return Type   : void
+* @Brief        : Initialize the Ambient Light Sensor  
+*/
 void veml_init(void)
 {
     int ret;
@@ -285,7 +389,14 @@ void veml_init(void)
     }
 }
 
-/* Producer 1 for shared memory 1 */
+
+/*
+* Function name : tmp102_task
+* Parameters    : void
+* Return Type   : void
+* @Brief        : Producer 1 for shared memory 1   
+*/
+
 void tmp102_task(void)
 {
     printf("In TMP102 task\n");
@@ -371,7 +482,13 @@ void tmp102_task(void)
     }
 }
 
-/* Producer 2 for Shared Memory 1 */
+
+/*
+* Function name : ambient_task
+* Parameters    : void
+* Return Type   : void
+* @Brief        : Producer 2 for shared memory 1   
+*/
 void ambient_task(void)
 {
     printf("In LUX Task");
@@ -443,7 +560,12 @@ void ambient_task(void)
     }
 }
 
-/*Consumer for shared memory 1*/
+/*
+* Function name : tx_uart
+* Parameters    : void
+* Return Type   : void
+* @Brief        : Consumer for shared memory 1   
+*/
 void tx_uart(void)
 {
     printf("In UART Tx task\n");
@@ -516,8 +638,12 @@ void tx_uart(void)
     sem_close(ambient_sem);
 }
 
-
-/* Producer for shared memory 2*/
+/*
+* Function name : rx_uart
+* Parameters    : void
+* Return Type   : void
+* @Brief        : Producer for shared memory 2   
+*/
 void rx_uart(void)
 {
     printf("In UART Rx task\n");
@@ -621,6 +747,12 @@ void rx_uart(void)
     sem_close(actuator_sem);
 }
 
+/*
+* Function name : sock_init
+* Parameters    : void
+* Return Type   : int
+* @Brief        : Initialize the socket  
+*/
 int sock_init(void)
 {
     memset(&hints, 0, sizeof hints);
@@ -676,7 +808,12 @@ int sock_init(void)
     return 0;
 }
 
-
+/*
+* Function name : sock_task
+* Parameters    : void
+* Return Type   : int
+* @Brief        : Task for Socket Communication   
+*/
 int sock_task(void)
 {
     int i;
@@ -708,6 +845,13 @@ int sock_task(void)
 }
 
 
+
+/*
+* Function name : main
+* Parameters    : void
+* Return Type   : int
+* @Brief        : Provides entry control to the application   
+*/
 int main(void)
 {
     int while_loop = 0;
