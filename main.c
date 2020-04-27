@@ -713,7 +713,7 @@ int sock_task(void)
         sprintf(logstring,"Temp : %u Lux : %u %s",tmp_buffer[i],lux_buffer[i],timestamp);
         send(new_fd,logstring,43,0);    
     }
-    
+
     for(i=0; i<sizeof(lux_buffer); i++)
     {
         syslog(LOG_DEBUG, "Buffer contents: %u", lux_buffer[i]);
@@ -817,6 +817,8 @@ int main(void)
         {
             sock_task();
             while_loop = 0;
+
+            close(new_fd);
         }
         while_loop++;
 
