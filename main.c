@@ -407,29 +407,28 @@ void ambient_task(void)
         exit(1);
     }
     // while(1)
-    // {
-        sensor = read_values();
+// {
+    sensor = read_values();
 
-        share_mem_veml_ptr->sensor = 2;
-        share_mem_veml_ptr->value = sensor;
+    share_mem_veml_ptr->sensor = 2;
+    share_mem_veml_ptr->value = sensor;
 
-        memcpy((void*)(&share_mem_ptr[1]), (void*)share_mem_veml_ptr, sizeof(sensor_shmem));
-        
-        lux_buffer[lux_count++] = share_mem_ptr[1].value;
-        if(lux_count == 5)
-            lux_count = 0;
-        
-        // sem_wait(buffer_sem);
-        // sprintf(buff, "Light sensor value is %d", sensor);
-        // sem_post(buffer_sem);
-
-        sem_post(ambient_sem);
-
-        printf("Sensor values: %d", sensor);
-
-        sleep(2);
+    memcpy((void*)(&share_mem_ptr[1]), (void*)share_mem_veml_ptr, sizeof(sensor_shmem));
     
-    printf("Test share mem issue: \nshm1: %d, %d\nshm2: %d, %d",
+    lux_buffer[lux_count++] = share_mem_ptr[1].value;
+    if(lux_count == 5)
+        lux_count = 0;
+    
+    // sem_wait(buffer_sem);
+    // sprintf(buff, "Light sensor value is %d", sensor);
+    // sem_post(buffer_sem);
+
+    sem_post(ambient_sem);
+
+    printf("Sensor values: %d", sensor);
+
+    sleep(2);
+    
     share_mem_ptr[0].sensor, share_mem_ptr[0].value, share_mem_ptr[1].sensor, share_mem_ptr[1].value);
 
     if(munmap(share_mem_ptr, SENSOR_SHMEM_PROD_COUNT * sizeof(sensor_shmem)) < 0)
@@ -565,12 +564,9 @@ void rx_uart(void)
             }
 
             print_act = count;
-            printf("Count: %d, act_count :%d\n", count, print_act);
             
             while(print_act > 0)
             {
-                printf("Actuator %d = %d\n", count-print_act, shmem_rx_ptr[count - print_act].actuator);
-                printf("Actuator value = %d\n", shmem_rx_ptr[count - print_act].value);
 
                 // memcpy((void*)shmem_rx_ptr, (void*)(&share_mem_ptr[0]), sizeof(actuator_shmem));
 
@@ -585,7 +581,6 @@ void rx_uart(void)
                 }
                 else if(shmem_rx_ptr[count-print_act].actuator == 1)
                 {
-                    printf("Buzzer on\n");
                     int i;
                     if(shmem_rx_ptr[count-print_act].value == 1)
                     {
@@ -611,10 +606,6 @@ void rx_uart(void)
         }
         sem_post(actuator_sem);
     }
-        // }
-
-        /* Wait for humidty and add sleep */
-    // }
 
     if(munmap(share_mem_ptr, sizeof(actuator_shmem)) < 0)
     {
@@ -714,10 +705,6 @@ int sock_task(void)
         send(new_fd,logstring,43,0);    
     }
     
-    for(i=0; i<sizeof(lux_buffer); i++)
-    {
-        syslog(LOG_DEBUG, "Buffer contents: %u", lux_buffer[i]);
-    }
     syslog(LOG_INFO,"Closed Connection from %s", inet_ntoa(their_addr.sin_addr));
     return 0;
 }
@@ -821,8 +808,6 @@ int main(void)
         while_loop++;
 
     }
-
-    
 	
 	sem_unlink(tmp_sem_name);
     sem_unlink(act_sem_name);
