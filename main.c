@@ -704,7 +704,15 @@ int sock_task(void)
         sprintf(logstring,"Temp : %u Lux : %u %s",tmp_buffer[i],lux_buffer[i],timestamp);
         send(new_fd,logstring,43,0);    
     }
+<<<<<<< HEAD
     
+=======
+
+    for(i=0; i<sizeof(lux_buffer); i++)
+    {
+        syslog(LOG_DEBUG, "Buffer contents: %u", lux_buffer[i]);
+    }
+>>>>>>> 669c78e74162609f1186db343930635f0152cb4d
     syslog(LOG_INFO,"Closed Connection from %s", inet_ntoa(their_addr.sin_addr));
     return 0;
 }
@@ -804,6 +812,8 @@ int main(void)
         {
             sock_task();
             while_loop = 0;
+
+            close(new_fd);
         }
         while_loop++;
 
